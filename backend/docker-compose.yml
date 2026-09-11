@@ -1,0 +1,52 @@
+# Pilot deployment shape (PRD 62): API + PostgreSQL + S3-compatible object storage.
+# Nginx / monitoring / background worker are added in front of this for production.
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      CPM_ENVIRONMENT: staging
+      CPM_DATABASE_URL: postgresql+psycopg://cpm:cpm@db:5432/cpm
+      CPM_JWT_SECRET: ${CPM_JWT_SECRET:-please-change-me}
+      CPM_EXPOSE_OTP: "false"
+      CPM_STORAGE_DIR: /app/data/objects
+      CPM_CORS_ORIGINS: ${CPM_CORS_ORIGINS:-*}
+    volumes:
+      - evidence:/app/data/objects
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cpm
+      POSTGRES_PASSWORD: cpm
+      POSTGRES_DB: cpm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cpm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # S3-compatible object storage for a production-shaped setup (PRD 60).
+  # To use it, add a MinIO storage backend in app/storage.py and point it here.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: cpm
+      MINIO_ROOT_PASSWORD: cpm-secret
+    volumes:
+      - miniodata:/data
+
+volumes:
+  evidence:
+  pgdata:
+  miniodata:

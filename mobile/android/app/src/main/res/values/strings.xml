@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CPM Ground Evidence</string>
+    <string name="title_activity_main">CPM Ground Evidence</string>
+    <string name="package_name">com.cpm.groundevidence</string>
+    <string name="custom_url_scheme">com.cpm.groundevidence</string>
+</resources>

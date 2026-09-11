@@ -1,0 +1,87 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "CloudFormation", "Effect": "Allow", "Action": "cloudformation:*", "Resource": "*" },
+
+    { "Sid": "EC2Networking", "Effect": "Allow", "Action": [
+        "ec2:CreateVpc", "ec2:DeleteVpc", "ec2:DescribeVpcs", "ec2:ModifyVpcAttribute",
+        "ec2:CreateSubnet", "ec2:DeleteSubnet", "ec2:DescribeSubnets", "ec2:ModifySubnetAttribute",
+        "ec2:DescribeNetworkInterfaces", "ec2:DescribeVpcAttribute",
+        "ec2:CreateRouteTable", "ec2:DeleteRouteTable", "ec2:DescribeRouteTables",
+        "ec2:CreateRoute", "ec2:DeleteRoute", "ec2:AssociateRouteTable", "ec2:DisassociateRouteTable",
+        "ec2:CreateInternetGateway", "ec2:DeleteInternetGateway", "ec2:AttachInternetGateway",
+        "ec2:DetachInternetGateway", "ec2:DescribeInternetGateways",
+        "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup", "ec2:DescribeSecurityGroups",
+        "ec2:AuthorizeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress", "ec2:RevokeSecurityGroupEgress",
+        "ec2:CreateVpcEndpoint", "ec2:DeleteVpcEndpoints", "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeAvailabilityZones", "ec2:CreateTags", "ec2:DeleteTags", "ec2:DescribeTags"
+      ], "Resource": "*" },
+
+    { "Sid": "EC2Instance", "Effect": "Allow", "Action": [
+        "ec2:RunInstances", "ec2:TerminateInstances", "ec2:StopInstances", "ec2:StartInstances",
+        "ec2:DescribeInstances", "ec2:DescribeInstanceStatus", "ec2:DescribeInstanceTypes",
+        "ec2:DescribeImages", "ec2:ModifyInstanceAttribute",
+        "ec2:CreateKeyPair", "ec2:DeleteKeyPair", "ec2:DescribeKeyPairs", "ec2:ImportKeyPair",
+        "ec2:AllocateAddress", "ec2:AssociateAddress", "ec2:DisassociateAddress",
+        "ec2:ReleaseAddress", "ec2:DescribeAddresses",
+        "ec2:CreateVolume", "ec2:DeleteVolume", "ec2:DescribeVolumes", "ec2:AttachVolume", "ec2:DetachVolume"
+      ], "Resource": "*" },
+
+    { "Sid": "RDS", "Effect": "Allow", "Action": [
+        "rds:CreateDBInstance", "rds:DeleteDBInstance", "rds:ModifyDBInstance", "rds:DescribeDBInstances",
+        "rds:CreateDBSubnetGroup", "rds:DeleteDBSubnetGroup", "rds:DescribeDBSubnetGroups",
+        "rds:AddTagsToResource", "rds:ListTagsForResource", "rds:DescribeDBEngineVersions",
+        "rds:CreateDBSnapshot", "rds:DescribeDBSnapshots"
+      ], "Resource": "*" },
+
+    { "Sid": "S3ProjectBuckets", "Effect": "Allow", "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::cpm-ground-app-*",
+        "arn:aws:s3:::cpm-ground-app-*/*"
+      ] },
+    { "Sid": "S3ListAll", "Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*" },
+
+    { "Sid": "ECRProjectRepo", "Effect": "Allow", "Action": "ecr:*",
+      "Resource": "arn:aws:ecr:*:*:repository/cpm-ground-app-*" },
+    { "Sid": "ECRAuth", "Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*" },
+
+    { "Sid": "CodeBuildProject", "Effect": "Allow", "Action": "codebuild:*",
+      "Resource": "arn:aws:codebuild:*:*:project/cpm-ground-app-*" },
+
+    { "Sid": "AppRunner", "Effect": "Allow", "Action": "apprunner:*", "Resource": "*" },
+
+    { "Sid": "SecretsManagerProject", "Effect": "Allow", "Action": "secretsmanager:*",
+      "Resource": [
+        "arn:aws:secretsmanager:*:*:secret:cpm-ground-app*",
+        "arn:aws:secretsmanager:*:*:secret:rds!*"
+      ] },
+
+    { "Sid": "CloudFront", "Effect": "Allow", "Action": "cloudfront:*", "Resource": "*" },
+
+    { "Sid": "IAMProjectRoles", "Effect": "Allow", "Action": [
+        "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRolePolicies",
+        "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+        "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:TagRole", "iam:ListAttachedRolePolicies",
+        "iam:PassRole"
+      ], "Resource": "arn:aws:iam::*:role/cpm-ground-app-*" },
+    { "Sid": "IAMProjectInstanceProfiles", "Effect": "Allow", "Action": [
+        "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile", "iam:GetInstanceProfile",
+        "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile"
+      ], "Resource": "arn:aws:iam::*:instance-profile/cpm-ground-app-*" },
+
+    { "Sid": "SSMPublicParams", "Effect": "Allow", "Action": ["ssm:GetParameters", "ssm:GetParameter"],
+      "Resource": "arn:aws:ssm:*::parameter/aws/service/*" },
+    { "Sid": "SSMSessionManager", "Effect": "Allow", "Action": [
+        "ssm:StartSession", "ssm:TerminateSession", "ssm:ResumeSession", "ssm:DescribeSessions",
+        "ssm:GetConnectionStatus", "ec2messages:*", "ssmmessages:*",
+        "ssm:DescribeInstanceInformation", "ssm:SendCommand", "ssm:GetCommandInvocation",
+        "ssm:ListCommandInvocations", "ssm:CancelCommand"
+      ], "Resource": "*" },
+
+    { "Sid": "Logs", "Effect": "Allow", "Action": [
+        "logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents",
+        "logs:DescribeLogGroups", "logs:DescribeLogStreams", "logs:GetLogEvents"
+      ], "Resource": "*" }
+  ]
+}

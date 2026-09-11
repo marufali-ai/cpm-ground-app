@@ -1,0 +1,1917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CPM Ground Evidence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#e9edf2; --surface:#ffffff; --surface-2:#f4f6f9; --surface-3:#e8ecf2;
+    --border:#d9e0ea; --border-strong:#c1cbd9;
+    --ink:#141d2b; --ink-2:#47566b; --ink-3:#84909f;
+    --accent:#c25a17; --accent-ink:#ffffff; --accent-soft:#f5e5d8;
+    --good:#137a3c; --good-bg:#dcefe2;
+    --warn:#9c6400; --warn-bg:#f5e8cd;
+    --bad:#bd2626; --bad-bg:#f4dbdb;
+    --info:#1f5cbb; --info-bg:#dbe5f7;
+    --purple:#6a3cbd; --purple-bg:#e6ddf6;
+    --ring-track:#e0e5ec;
+    --shadow-1:0 1px 2px rgba(20,29,43,.08);
+    --shadow-2:0 8px 24px -10px rgba(20,29,43,.24);
+    --scrim:rgba(14,20,29,.52);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a121c; --surface:#121d2b; --surface-2:#0e1826; --surface-3:#172434;
+      --border:#25384c; --border-strong:#374d67;
+      --ink:#e6edf5; --ink-2:#a7b6c7; --ink-3:#6f8096;
+      --accent:#ef8a41; --accent-ink:#1a1206; --accent-soft:#31241a;
+      --good:#3ec46f; --good-bg:#0f2a1c;
+      --warn:#e0a53a; --warn-bg:#2d2210;
+      --bad:#f0605f; --bad-bg:#331616;
+      --info:#5b9bf0; --info-bg:#122438;
+      --purple:#b090ec; --purple-bg:#201a37;
+      --ring-track:#25384c;
+      --shadow-1:0 1px 2px rgba(0,0,0,.4);
+      --shadow-2:0 12px 30px -12px rgba(0,0,0,.62);
+      --scrim:rgba(2,6,11,.64);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a121c; --surface:#121d2b; --surface-2:#0e1826; --surface-3:#172434;
+    --border:#25384c; --border-strong:#374d67;
+    --ink:#e6edf5; --ink-2:#a7b6c7; --ink-3:#6f8096;
+    --accent:#ef8a41; --accent-ink:#1a1206; --accent-soft:#31241a;
+    --good:#3ec46f; --good-bg:#0f2a1c;
+    --warn:#e0a53a; --warn-bg:#2d2210;
+    --bad:#f0605f; --bad-bg:#331616;
+    --info:#5b9bf0; --info-bg:#122438;
+    --purple:#b090ec; --purple-bg:#201a37;
+    --ring-track:#25384c;
+    --shadow-1:0 1px 2px rgba(0,0,0,.4);
+    --shadow-2:0 12px 30px -12px rgba(0,0,0,.62);
+    --scrim:rgba(2,6,11,.64);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.5;-webkit-tap-highlight-color:transparent}
+  h1,h2,h3,h4{font-family:Barlow,Inter,sans-serif;margin:0;line-height:1.15;text-wrap:balance;letter-spacing:.01em}
+  button{font-family:inherit}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  ::selection{background:var(--accent-soft)}
+
+  /* shell */
+  #app{max-width:480px;margin:0 auto;min-height:100dvh;background:var(--bg);display:flex;flex-direction:column;position:relative;box-shadow:var(--shadow-2)}
+  .appbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 12px;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .appbar .ttl{flex:1;min-width:0}
+  .appbar .ttl b{font-family:Barlow;font-weight:700;font-size:16px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .appbar .ttl span{font-size:11px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+  .iconbtn{width:38px;height:38px;flex:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:11px;font-size:17px;display:grid;place-items:center;cursor:pointer}
+  .iconbtn:active{transform:scale(.94)}
+  .brand{width:38px;height:38px;flex:none;border-radius:11px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:Barlow;font-weight:700;font-size:13px;letter-spacing:.02em}
+
+  .strip{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 12px;font-size:11.5px;background:var(--surface-2);border-bottom:1px solid var(--border);color:var(--ink-2)}
+  .strip .dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+  .strip.off .dot{background:var(--warn)}
+  .strip b{font-weight:600;color:var(--ink)}
+
+  .scroll{flex:1;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px}
+  .actionbar{position:sticky;bottom:0;z-index:15;display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--border)}
+
+  /* type helpers */
+  .eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .lede{color:var(--ink-2);font-size:13.5px}
+  .h-xl{font-size:26px;font-weight:700}
+  .h-lg{font-size:20px;font-weight:700}
+  .h-md{font-size:16px;font-weight:600}
+  .muted{color:var(--ink-3)}
+  .num{font-family:Barlow;font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* card / rows */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-1)}
+  .card.tight{padding:12px}
+  .stack{display:flex;flex-direction:column;gap:10px}
+  .between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:13px;text-align:left;width:100%;color:inherit;cursor:pointer;position:relative;overflow:hidden}
+  .row:active{background:var(--surface-2)}
+  .row .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border-strong)}
+  .row .stripe.good{background:var(--good)} .row .stripe.warn{background:var(--warn)}
+  .row .stripe.bad{background:var(--bad)} .row .stripe.info{background:var(--info)} .row .stripe.mute{background:var(--ink-3)}
+  .row .rmain{flex:1;min-width:0}
+  .row .rmain b{font-weight:600;font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .rmain small{color:var(--ink-3);font-size:12px}
+  .row .chev{color:var(--ink-3);font-size:18px;flex:none}
+
+  /* readout (instrument) */
+  .readout{border:1px solid var(--border-strong);border-radius:13px;background:var(--surface-2);padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:5px}
+  .readout .kv{display:flex;justify-content:space-between;gap:12px}
+  .readout .kv b{color:var(--ink);font-weight:500}
+
+  /* tiles */
+  .tile{background:var(--surface-2);border:1px solid var(--border);border-radius:13px;padding:12px}
+  .tile .k{font-family:Barlow;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+  .tile .l{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+  /* ring */
+  .ring{--v:0;width:104px;height:104px;border-radius:50%;flex:none;
+    background:conic-gradient(var(--accent) calc(var(--v)*1%), var(--ring-track) 0);
+    display:grid;place-items:center;position:relative}
+  .ring::before{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--surface)}
+  .ring .rv{position:relative;font-family:Barlow;font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
+  .ring .rl{position:relative;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+
+  /* badges */
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+  .badge .bd{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .b-good{color:var(--good);background:var(--good-bg)}
+  .b-warn{color:var(--warn);background:var(--warn-bg)}
+  .b-bad{color:var(--bad);background:var(--bad-bg)}
+  .b-info{color:var(--info);background:var(--info-bg)}
+  .b-purple{color:var(--purple);background:var(--purple-bg)}
+  .b-mute{color:var(--ink-2);background:var(--surface-3)}
+  .badge.pulse .bd{animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* buttons */
+  .btn{appearance:none;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink);border-radius:13px;padding:13px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.dark{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+  .btn.danger{background:var(--bad-bg);border-color:transparent;color:var(--bad)}
+  .btn.ghost{background:transparent;border-color:var(--border)}
+  .btn.block{width:100%}
+  .btn.sm{min-height:40px;padding:9px 12px;font-size:13px;border-radius:11px}
+
+  /* fields */
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:12px;font-weight:600;color:var(--ink-2)}
+  .field .hint{font-size:11px;color:var(--ink-3)}
+  input,select,textarea{font-family:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:11px;padding:12px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  textarea{min-height:76px;resize:vertical}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-2);border-radius:11px;padding:11px;font-weight:600;font-size:13px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+  /* thumbs */
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;border:1px solid var(--border);background:var(--surface-3);cursor:pointer}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .tsync{position:absolute;left:4px;bottom:4px;font-size:9px;padding:2px 5px;border-radius:6px;background:rgba(0,0,0,.62);color:#fff;font-weight:600}
+  .thumb.add{display:grid;place-items:center;border-style:dashed;color:var(--ink-3);font-size:24px}
+  .thumb.add span{font-size:11px;font-weight:600}
+  .img-missing{background:repeating-linear-gradient(45deg,var(--surface-3),var(--surface-3) 6px,var(--surface-2) 6px,var(--surface-2) 12px)}
+
+  /* sheet + scrim */
+  .scrim{position:fixed;inset:0;background:var(--scrim);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+  .sheet{width:100%;max-width:480px;background:var(--surface);border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none;max-height:88dvh;overflow:auto;animation:up .22s ease}
+  .sheet .sh-hd{position:sticky;top:0;background:var(--surface);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .sheet .sh-bd{padding:16px;display:flex;flex-direction:column;gap:12px}
+  @keyframes up{from{transform:translateY(14px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  .menu-link{display:flex;align-items:center;gap:12px;padding:14px 6px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;cursor:pointer}
+  .menu-link:last-child{border-bottom:none}
+  .menu-link .mi{width:22px;text-align:center}
+
+  /* camera */
+  .cam{position:fixed;inset:0;background:#05070b;z-index:60;display:flex;flex-direction:column}
+  .cam video{flex:1;width:100%;object-fit:cover;background:#05070b}
+  .cam .camhud{position:absolute;top:0;left:0;right:0;padding:14px 16px calc(14px + env(safe-area-inset-top));color:#fff;display:flex;justify-content:space-between;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+  .cam .guide{position:absolute;inset:64px 26px 190px;border:2px dashed rgba(255,255,255,.82);border-radius:14px;pointer-events:none}
+  .cam .guide::after{content:"Keep the unit in frame — include surrounding context";position:absolute;left:0;right:0;bottom:-30px;text-align:center;color:rgba(255,255,255,.9);font-size:11px;font-weight:600}
+  .cam .gpsband{position:absolute;left:16px;right:16px;bottom:150px;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  .cam .camctl{position:absolute;left:0;right:0;bottom:0;padding:20px 24px calc(26px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between}
+  .cam .shutter{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.45);cursor:pointer}
+  .cam .shutter:active{transform:scale(.92)}
+  .cam .cambtn{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:11px;padding:10px 14px;font-weight:600;font-size:13px;cursor:pointer;min-width:64px}
+  .cam .fallback{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;padding:32px;text-align:center}
+  .flash{position:fixed;inset:0;background:#fff;z-index:61;animation:flash .32s ease forwards;pointer-events:none}
+  @keyframes flash{from{opacity:.9}to{opacity:0}}
+
+  /* viewer */
+  .viewer{position:fixed;inset:0;background:#05070b;z-index:62;display:flex;flex-direction:column}
+  .viewer .vtop{display:flex;justify-content:space-between;padding:14px 16px calc(14px + env(safe-area-inset-top));color:#fff;font-weight:600}
+  .viewer .vimg{flex:1;display:grid;place-items:center;overflow:auto;padding:8px}
+  .viewer .vimg img{max-width:100%;max-height:100%;border-radius:8px}
+  .viewer .vmeta{background:var(--surface);border-top:1px solid var(--border);padding:14px 16px calc(14px + env(safe-area-inset-bottom));max-height:44dvh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+
+  /* toast */
+  #toast-root{position:fixed;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom));z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+  .toast{background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:var(--shadow-2);max-width:88%;animation:up .2s ease}
+  .toast.bad{background:var(--bad)} .toast.good{background:var(--good)}
+
+  .banner{border-radius:12px;padding:11px 13px;font-size:12.5px;display:flex;gap:9px;align-items:flex-start}
+  .banner.warn{background:var(--warn-bg);color:var(--warn)}
+  .banner.bad{background:var(--bad-bg);color:var(--bad)}
+  .banner.info{background:var(--info-bg);color:var(--info)}
+  .banner.good{background:var(--good-bg);color:var(--good)}
+  .banner b{font-weight:700}
+
+  .divider{height:1px;background:var(--border);margin:2px 0}
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:8px 0}
+  .tl .tt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3)}
+  .tl .tc{border-left:2px solid var(--border);padding-left:12px;position:relative;font-size:13px}
+  .tl .tc::before{content:"";position:absolute;left:-5px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+  .skel{background:linear-gradient(90deg,var(--surface-3),var(--surface-2),var(--surface-3));background-size:200% 100%;animation:sk 1.2s linear infinite;border-radius:10px}
+  @keyframes sk{to{background-position:-200% 0}}
+
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
+</style>
+</head>
+<body>
+
+<div id="app"><div class="scroll"><div class="skel" style="height:120px"></div><div class="skel" style="height:80px"></div><div class="skel" style="height:200px"></div></div></div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================== helpers ============================== */
+var APP = document.getElementById('app');
+var MODAL = document.getElementById('modal-root');
+var TOASTS = document.getElementById('toast-root');
+var LSKEY = 'cpm_ground_v2';
+var IDB_NAME='cpm_ground_blobs', IDB_STORE='b';
+
+var $ = function(s,r){return (r||document).querySelector(s);};
+var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+function h(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function pad(n,l){n=String(n);while(n.length<(l||2))n='0'+n;return n;}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function uid(p){return p+'-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+function fmtDate(d){d=new Date(d);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtTime(d){d=new Date(d);return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+function fmtDT(d){return fmtDate(d)+' '+fmtTime(d);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function haversine(a,b){
+  var R=6371000, toR=function(x){return x*Math.PI/180;};
+  var dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+async function sha256(blob){
+  try{
+    var buf=await blob.arrayBuffer();
+    var d=await crypto.subtle.digest('SHA-256',buf);
+    return Array.prototype.map.call(new Uint8Array(d),function(b){return pad(b.toString(16));}).join('');
+  }catch(e){
+    var u=new Uint8Array(await blob.arrayBuffer()), hh=5381;
+    for(var i=0;i<u.length;i+=1009){hh=((hh<<5)+hh+u[i])>>>0;}
+    return 'djb2-'+hh.toString(16);
+  }
+}
+
+/* ============================== API client ============================== */
+// Base URL of the live backend. Override per-device with ?api=https://... (persisted),
+// or by setting localStorage['cpm_api_base'] directly. Defaults to the local dev server.
+var API_BASE=(function(){
+  // Set by the mobile (Capacitor) build's index.html — its WebView origin is a fixed
+  // "localhost", which would otherwise be mistaken for a local dev server below.
+  if(window.CPM_API_BASE)return window.CPM_API_BASE.replace(/\/$/,'');
+  try{ var q=new URLSearchParams(location.search).get('api'); if(q){localStorage.setItem('cpm_api_base',q);return q.replace(/\/$/,'');} }catch(e){}
+  try{ var s=localStorage.getItem('cpm_api_base'); if(s)return s.replace(/\/$/,''); }catch(e){}
+  // Same-origin deploys (the app and API served behind one CloudFront domain) need no base
+  // at all — a relative path avoids CORS entirely. Only local dev needs the explicit localhost URL.
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')return 'http://127.0.0.1:8000/api/v1';
+  return '/api/v1';
+})();
+function authHeaders(){ return (state.session&&state.session.accessToken)?{'Authorization':'Bearer '+state.session.accessToken}:{}; }
+async function apiRaw(method,path,opts){
+  opts=opts||{};
+  var headers=Object.assign({},authHeaders(),opts.headers||{});
+  var init={method:method,headers:headers};
+  if(opts.idempotencyKey)headers['Idempotency-Key']=opts.idempotencyKey;
+  if(opts.form){ init.body=opts.form; }
+  else if(opts.body!==undefined){ headers['Content-Type']='application/json'; init.body=JSON.stringify(opts.body); }
+  var res;
+  try{ res=await fetch(API_BASE+path,init); }
+  catch(e){ throw {code:'NETWORK',message:'Could not reach the server — check connectivity.',network:true}; }
+  var data=null;
+  try{ data=await res.json(); }catch(e){}
+  if(!res.ok){
+    var err=(data&&data.error)?Object.assign({},data.error):{code:'ERROR',message:'Request failed ('+res.status+').'};
+    err.status=res.status; throw err;
+  }
+  return data;
+}
+async function tryRefresh(){
+  if(!state.session||!state.session.refreshToken)return false;
+  try{
+    var t=await apiRaw('POST','/auth/refresh',{body:{refresh_token:state.session.refreshToken}});
+    state.session.accessToken=t.access_token; state.session.refreshToken=t.refresh_token; save();
+    return true;
+  }catch(e){
+    audit('auth',state.session.userId,'SESSION_EXPIRED',{});
+    state.session=null; save(); toast('Session expired — sign in again','bad'); location.replace('#/login');
+    return false;
+  }
+}
+async function api(method,path,opts){
+  opts=opts||{};
+  try{ return await apiRaw(method,path,opts); }
+  catch(e){
+    if(e&&e.status===401&&!opts._retried&&state.session&&state.session.refreshToken){
+      if(await tryRefresh())return apiRaw(method,path,Object.assign({},opts,{_retried:true}));
+    }
+    throw e;
+  }
+}
+function apiErrMsg(e){ return (e&&e.message)||'Something went wrong talking to the server.'; }
+
+/* ============================== blob store ============================== */
+var MEMBLOB={};
+function idb(){return new Promise(function(res,rej){
+  var r; try{r=indexedDB.open(IDB_NAME,1);}catch(e){return rej(e);}
+  r.onupgradeneeded=function(e){e.target.result.createObjectStore(IDB_STORE);};
+  r.onsuccess=function(e){res(e.target.result);};
+  r.onerror=function(){rej(r.error);};
+});}
+async function blobPut(k,v){try{var db=await idb();await new Promise(function(res,rej){var tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,k);tx.oncomplete=res;tx.onerror=function(){rej(tx.error);};});}catch(e){MEMBLOB[k]=v;}}
+async function blobGet(k){try{var db=await idb();return await new Promise(function(res,rej){var tx=db.transaction(IDB_STORE,'readonly');var q=tx.objectStore(IDB_STORE).get(k);q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});}catch(e){return MEMBLOB[k];}}
+async function blobDel(k){try{var db=await idb();await new Promise(function(res,rej){var tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).delete(k);tx.oncomplete=res;tx.onerror=function(){rej(tx.error);};});}catch(e){delete MEMBLOB[k];}}
+var URLCACHE={};
+async function hydrateImages(root){
+  var imgs=$$('img[data-ev]',root);
+  for(var i=0;i<imgs.length;i++){
+    var img=imgs[i], key=img.getAttribute('data-ev');
+    if(URLCACHE[key]){img.src=URLCACHE[key];continue;}
+    var rec=await blobGet(key);
+    var b=rec&&(rec.watermarked||rec.original);
+    if(b){var u=URL.createObjectURL(b);URLCACHE[key]=u;img.src=u;}
+    else{img.classList.add('img-missing');}
+  }
+}
+
+/* ============================== config + seed ============================== */
+var DEFAULT_CONFIG={
+  geofenceRadius:50, gpsPoorAccuracy:30, minPhotos:1, maxPhotos:5,
+  maxImageSide:1600, jpegQuality:0.82, sessionTimeoutMin:60, syncFailRate:0.12,
+  cameraLocations:['Classroom','Lab','Control Room','Entry','Exit','Corridor','Strong Room','Frisking Area','Staircase','Outside / Perimeter','Other'],
+  cameraStatuses:['Installed','Not Installed','Damaged','Not Working','Installation Blocked','Other'],
+  cameraIssueReasons:['Access unavailable','Infrastructure issue','Equipment unavailable','Power issue','Network issue','Center refused','Other'],
+  issueSeverities:['Critical','High','Medium','Low'],
+  issueCategories:['Power','Network','Infrastructure','Access','Equipment','Safety','Other'],
+  testGpsAtCenter:false, simulateMock:false, forceOffline:false
+};
+function freshState(){
+  return {
+    v:3, session:null, deviceId:uid('DEV'),
+    config:JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
+    projects:[],   // populated from GET /projects + /projects/{id}/centers after login (loadCatalog())
+    assignments:[],   // vendor allocation isn't in the current backend — pick center via "Browse projects"
+    seq:1244,
+    activeId:null,
+    installations:{},
+    syncQueue:[],
+    audit:[],
+    ui:{theme:null}
+  };
+}
+var state;
+function load(){
+  try{var raw=localStorage.getItem(LSKEY);state=raw?JSON.parse(raw):freshState();}
+  catch(e){state=freshState();}
+  if(!state||state.v!==3)state=freshState();
+}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify(state));}catch(e){toast('Storage write failed — device may be full','bad');}}
+
+/* ============================== audit + timeline ============================== */
+function audit(entityType,entityId,action,extra){
+  extra=extra||{};
+  state.audit.push({
+    auditId:uid('AUD'), entityType:entityType, entityId:entityId, action:action,
+    performedBy:state.session?state.session.userId:'anon',
+    ts:Date.now(), reason:extra.reason||null,
+    oldValue:extra.oldValue==null?null:String(extra.oldValue),
+    newValue:extra.newValue==null?null:String(extra.newValue),
+    deviceId:state.deviceId
+  });
+  if(state.audit.length>800)state.audit=state.audit.slice(-800);
+}
+function tl(inst,label){ inst.timeline.push({ts:Date.now(),label:label}); }
+
+/* ============================== GPS engine ============================== */
+var GPS={watchId:null,last:null,prev:null,suspicious:false};
+function startGps(){
+  if(GPS.watchId!=null||!navigator.geolocation)return;
+  try{
+    GPS.watchId=navigator.geolocation.watchPosition(function(p){
+      var cur={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy||999,ts:p.timestamp||Date.now()};
+      if(GPS.last){
+        var dt=(cur.ts-GPS.last.ts)/1000, dd=haversine(GPS.last,cur);
+        if(dt>0&&dt<6&&dd>300)GPS.suspicious=true;
+      }
+      GPS.prev=GPS.last; GPS.last=cur;
+      refreshGpsBits();
+    },function(){ GPS.last=null; refreshGpsBits(); },{enableHighAccuracy:true,maximumAge:4000,timeout:12000});
+  }catch(e){}
+}
+function stopGps(){ if(GPS.watchId!=null&&navigator.geolocation){navigator.geolocation.clearWatch(GPS.watchId);} GPS.watchId=null; }
+function evalGps(center){
+  var c=state.config;
+  if(c.testGpsAtCenter){
+    return {status:'Verified',distance:12,accuracy:6,lat:center?center.lat:0,lng:center?center.lng:0,ts:Date.now(),provider:'test-mode',message:'GPS test mode — treated as at center.'};
+  }
+  if(!GPS.last)return {status:'Unavailable',distance:null,accuracy:null,lat:null,lng:null,ts:Date.now(),provider:'none',message:'Location unavailable. Allow location access or move to open sky.'};
+  var L=GPS.last, dist=center?haversine(L,center):null;
+  var out={status:'Verified',distance:dist,accuracy:Math.round(L.accuracy),lat:L.lat,lng:L.lng,ts:L.ts,provider:'gps',message:''};
+  if(c.simulateMock||GPS.suspicious){out.status='Suspicious';out.message='Suspected location manipulation — session flagged for review.';return out;}
+  if(dist==null){return out;}
+  var margin=Math.max(L.accuracy,15);
+  if(dist>c.geofenceRadius+margin){out.status='Outside Geofence';out.message='You are outside the permitted center location. Move closer to the center to capture installation evidence.';}
+  else if(dist>c.geofenceRadius){out.status='Warning';out.message='Near the geofence edge and GPS is uncertain — capture allowed, distance recorded.';}
+  else if(L.accuracy>c.gpsPoorAccuracy){out.status='Warning';out.message='GPS accuracy is poor (±'+Math.round(L.accuracy)+'m). Capture allowed; accuracy recorded.';}
+  return out;
+}
+function gpsBadge(g){
+  var m={'Verified':'b-good','Warning':'b-warn','Outside Geofence':'b-bad','Unavailable':'b-mute','Suspicious':'b-purple'};
+  return '<span class="badge '+m[g.status]+'"><span class="bd"></span>GPS '+h(g.status)+(g.distance!=null?' · '+Math.round(g.distance)+'m':'')+'</span>';
+}
+var _gpsThrottle=0;
+function refreshGpsBits(){
+  var now=Date.now(); if(now-_gpsThrottle<600)return; _gpsThrottle=now;
+  updateStrip();
+  var host=$('#gpslive'); if(host){ var inst=activeInst(); var g=evalGps(inst?{lat:inst.centerLat,lng:inst.centerLng}:null); host.outerHTML=gpsLivePanel(g); }
+}
+
+/* ============================== network + sync ============================== */
+function online(){ return state.config.forceOffline?false:navigator.onLine; }
+function updateStrip(){
+  var strip=$('#strip'); if(!strip)return;
+  var q=state.syncQueue, pend=q.filter(function(x){return x.status==='Pending'||x.status==='Uploading'||x.status==='Failed';}).length;
+  var on=online();
+  strip.className='strip'+(on?'':' off');
+  var inst=activeInst();
+  var gtxt='';
+  if(inst){var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});gtxt=' · GPS '+g.status;}
+  strip.innerHTML='<span class="dot"></span><b>'+(on?'Online':'Offline')+'</b>'+
+    (pend?' · <b>'+pend+'</b> pending sync':(q.length?' · all synced':''))+
+    h(gtxt);
+}
+var SYNC_RUN=false;
+async function syncEvidenceItem(item){
+  var inst=state.installations[item.instId]; var e=inst&&inst.evidence[item.refId];
+  if(!inst||!e)return; // local record gone — nothing to do, treat as done
+  if(e.deleted)return; // pre-submission deletes are never queued in the first place
+  var rec=await blobGet(item.refId);
+  if(!rec||!rec.original)throw {code:'BLOB_MISSING',message:'Image data is missing on this device.'};
+  if(e.serverEvidenceId){
+    // already uploaded once before — this queued item is a post-submission replace (PRD 41)
+    var rfd=new FormData();
+    rfd.append('file',rec.original,'original.jpg');
+    if(rec.watermarked)rfd.append('watermarked',rec.watermarked,'watermarked.jpg');
+    rfd.append('reason',e.lastReplaceReason||'Replaced on device');
+    await api('POST','/evidence/'+e.serverEvidenceId+'/replace',{form:rfd});
+    return;
+  }
+  var fd=new FormData();
+  fd.append('file',rec.original,'original.jpg');
+  if(rec.watermarked)fd.append('watermarked',rec.watermarked,'watermarked.jpg');
+  fd.append('installation_id',inst.id);
+  fd.append('evidence_type',e.equipmentType);
+  if(e.equipmentId)fd.append('equipment_id',e.equipmentId);
+  if(e.unitNumber)fd.append('unit_number',e.unitNumber);
+  if(e.location)fd.append('location',e.location);
+  fd.append('captured_at',new Date(e.createdAt).toISOString());
+  if(e.lat!=null)fd.append('latitude',e.lat);
+  if(e.lng!=null)fd.append('longitude',e.lng);
+  if(e.gpsAccuracy!=null)fd.append('gps_accuracy',e.gpsAccuracy);
+  fd.append('gps_verified',e.gpsVerified?'true':'false');
+  if(e.gpsStatus)fd.append('gps_status',e.gpsStatus);
+  fd.append('client_uuid',item.refId);
+  var resp=await api('POST','/evidence/upload',{form:fd,idempotencyKey:item.idempotencyKey});
+  e.serverEvidenceId=resp.evidence_id; e.signedUrl=resp.signed_url;
+}
+async function syncSubmissionItem(item){
+  var inst=state.installations[item.instId]; if(!inst)return;
+  var selfie=inst.evidence[inst.submitSelfieId];
+  var resp=await api('POST','/installations/'+inst.id+'/submit',{body:{
+    status:inst.status, acknowledged:true,
+    submission_selfie_evidence_id:(selfie&&selfie.serverEvidenceId)||null,
+    client_uuid:item.idempotencyKey, device_id:state.deviceId
+  }});
+  inst.serverSubmissionId=resp.submission_id;
+}
+async function syncIssueItem(item){
+  var inst=state.installations[item.instId]; var iss=inst&&inst.issues.find(function(x){return x.id===item.refId;});
+  if(!inst||!iss)return;
+  var ev=inst.evidence[iss.photoId];
+  if(!ev||!ev.serverEvidenceId)throw {notReady:true,message:'evidence for this issue has not synced yet'};
+  var resp=await api('POST','/issues',{body:{
+    installation_id:inst.id, equipment_id:iss.equipmentId||null, severity:iss.severity,
+    category:iss.category, description:iss.description, evidence_id:ev.serverEvidenceId
+  }});
+  iss.serverIssueId=resp.issue_id;
+}
+async function syncPatchItem(item){
+  await api('PATCH','/equipment/'+item.refId,{body:item.fields});
+}
+async function syncInstPatchItem(item){
+  await api('PATCH','/installations/'+item.refId,{body:item.fields});
+}
+function queueInstStatus(inst){
+  state.syncQueue.push({id:uid('SYQ'),type:'instpatch',refId:inst.id,instId:inst.id,status:'Pending',attempts:0,nextRetryAt:0,fields:{status:inst.status,device_id:state.deviceId},queuedAt:Date.now()});
+  save();
+}
+async function syncIssuePatchItem(item){
+  await api('PATCH','/issues/'+item.refId,{body:item.fields});
+}
+async function syncTick(){
+  if(SYNC_RUN)return; if(!online())return;
+  var now=Date.now();
+  var item=state.syncQueue.find(function(x){return x.status==='Pending'||(x.status==='Failed'&&x.nextRetryAt<=now);});
+  if(!item)return;
+  SYNC_RUN=true;
+  item.status='Uploading'; item.attempts=(item.attempts||0)+1; save(); maybeRefresh();
+  try{
+    if(item.type==='evidence')await syncEvidenceItem(item);
+    else if(item.type==='submission')await syncSubmissionItem(item);
+    else if(item.type==='issue')await syncIssueItem(item);
+    else if(item.type==='issuepatch')await syncIssuePatchItem(item);
+    else if(item.type==='patch')await syncPatchItem(item);
+    else if(item.type==='instpatch')await syncInstPatchItem(item);
+    item.status='Synced'; item.syncedAt=Date.now();
+    applySync(item);
+    audit(item.type,item.refId,'SYNCED',{});
+  }catch(e){
+    if(e&&e.notReady){
+      item.status='Pending'; item.attempts=Math.max(0,item.attempts-1); // not a failure — just waiting on a dependency
+    }else{
+      item.status='Failed';
+      item.nextRetryAt=now+Math.min(60000,1500*Math.pow(2,item.attempts));
+      audit(item.type,item.refId,'FAILED',{reason:apiErrMsg(e)});
+    }
+  }
+  save(); SYNC_RUN=false; maybeRefresh();
+}
+function applySync(item){
+  var inst=state.installations[item.instId]; if(!inst)return;
+  if(item.type==='evidence'&&inst.evidence[item.refId]){ inst.evidence[item.refId].syncStatus='Synced'; inst.evidence[item.refId].uploadedAt=Date.now(); }
+  if(item.type==='submission'){ inst.serverAck=true; }
+  var rest=state.syncQueue.filter(function(x){return x.instId===item.instId&&x.status!=='Synced';});
+  if(rest.length===0&&inst.submitted&&inst.serverAck){ tl(inst,'All evidence synced'); }
+  inst.updatedAt=Date.now();
+}
+function queueSync(type,refId,instId){
+  // dedup only against a not-yet-resolved entry — a *new* item after a prior 'Synced' one is
+  // legitimate (e.g. a post-submission replace re-syncing the same evidence id with a new version).
+  if(state.syncQueue.some(function(x){return x.type===type&&x.refId===refId&&(x.status==='Pending'||x.status==='Uploading');}))return;
+  state.syncQueue.push({id:uid('SYQ'),type:type,refId:refId,instId:instId,status:'Pending',attempts:0,nextRetryAt:0,idempotencyKey:uid('IDK'),queuedAt:Date.now()});
+}
+
+/* ============================== toast + sheet + confirm ============================== */
+function toast(msg,kind){
+  var t=document.createElement('div'); t.className='toast'+(kind?' '+kind:''); t.textContent=msg;
+  TOASTS.appendChild(t);
+  setTimeout(function(){t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(function(){t.remove();},320);},2600);
+}
+function closeSheet(){ MODAL.innerHTML=''; }
+function sheet(title,bodyHTML){
+  MODAL.innerHTML='<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">'+
+    '<div class="sh-hd"><h3 class="h-md">'+h(title)+'</h3><button class="iconbtn" id="shx" aria-label="Close">✕</button></div>'+
+    '<div class="sh-bd">'+bodyHTML+'</div></div></div>';
+  $('#scrim').addEventListener('click',function(e){if(e.target.id==='scrim')closeSheet();});
+  $('#shx').addEventListener('click',closeSheet);
+}
+function confirmModal(o){
+  return new Promise(function(resolve){
+    MODAL.innerHTML='<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">'+
+      '<div class="sh-hd"><h3 class="h-md">'+h(o.title)+'</h3></div>'+
+      '<div class="sh-bd"><div class="lede">'+o.body+'</div>'+
+      '<div style="display:flex;gap:10px;margin-top:6px">'+
+      '<button class="btn ghost block" id="cno">'+h(o.cancelText||'Cancel')+'</button>'+
+      '<button class="btn '+(o.danger?'danger':'primary')+' block" id="cyes">'+h(o.confirmText||'Confirm')+'</button>'+
+      '</div></div></div></div>';
+    $('#cno').addEventListener('click',function(){closeSheet();resolve(false);});
+    $('#cyes').addEventListener('click',function(){closeSheet();resolve(true);});
+  });
+}
+
+/* ============================== camera + watermark ============================== */
+function openCamera(opts){
+  // opts: {facing, guide, gpsText, title, onCapture(blob)}
+  var stream=null, wrap=document.createElement('div'); wrap.className='cam';
+  var facing=opts.facing||'environment';
+  wrap.innerHTML=
+    '<video autoplay playsinline muted></video>'+
+    '<div class="camhud"><span>'+h(opts.title||'Capture evidence')+'</span><span id="camcount"></span></div>'+
+    (opts.guide?'<div class="guide"></div>':'')+
+    '<div class="gpsband">'+h(opts.gpsText||'')+'</div>'+
+    '<div class="camctl"><button class="cambtn" id="camx">Cancel</button>'+
+      '<button class="shutter" id="camshot" aria-label="Capture"></button>'+
+      '<button class="cambtn" id="camswap">Flip</button></div>'+
+    '<div class="fallback" hidden><div style="font-weight:700;font-size:16px">In-app camera unavailable here</div>'+
+      '<div style="font-size:13px;opacity:.85;max-width:280px">Your browser blocked live camera in this frame. Use the device camera instead — gallery is not offered.</div>'+
+      '<input type="file" accept="image/*" capture="'+(facing==='user'?'user':'environment')+'" id="camfile" style="color:#fff">'+
+      '<button class="cambtn" id="camx2">Cancel</button></div>';
+  document.body.appendChild(wrap);
+  var video=$('video',wrap), fb=$('.fallback',wrap);
+  function stop(){ if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;} }
+  function done(blob){ stop(); wrap.remove(); var f=document.createElement('div');f.className='flash';document.body.appendChild(f);setTimeout(function(){f.remove();},340); opts.onCapture(blob); }
+  function fallbackMode(){ $('video',wrap).style.display='none'; $('.camctl',wrap).style.display='none'; var g=$('.guide',wrap); if(g)g.style.display='none'; $('.gpsband',wrap).style.display='none'; fb.hidden=false; }
+  function begin(f){
+    stop();
+    navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:{facingMode:f,width:{ideal:1920},height:{ideal:1440}},audio:false})
+      .then(function(s){stream=s;video.srcObject=s;}).catch(function(){fallbackMode();});
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){fallbackMode();}else{begin(facing);}
+  $('#camx',wrap).addEventListener('click',function(){stop();wrap.remove();});
+  $('#camx2',wrap).addEventListener('click',function(){stop();wrap.remove();});
+  $('#camswap',wrap).addEventListener('click',function(){facing=(facing==='user'?'environment':'user');begin(facing);});
+  $('#camshot',wrap).addEventListener('click',function(){
+    if(!stream){fallbackMode();return;}
+    var vw=video.videoWidth||1280, vh=video.videoHeight||960;
+    var c=document.createElement('canvas'); c.width=vw; c.height=vh;
+    c.getContext('2d').drawImage(video,0,0,vw,vh);
+    c.toBlob(function(b){ done(b); },'image/jpeg',0.95);
+  });
+  $('#camfile',wrap).addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; if(f)done(f); });
+}
+function loadImage(blob){
+  return new Promise(function(res,rej){
+    var url=URL.createObjectURL(blob), img=new Image();
+    img.onload=function(){ res({img:img,url:url}); };
+    img.onerror=function(){ URL.revokeObjectURL(url); rej(new Error('decode failed')); };
+    img.src=url;
+  });
+}
+function roundRect(ctx,x,y,w,r){ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w.w,y,x+w.w,y+w.h,r);ctx.arcTo(x+w.w,y+w.h,x,y+w.h,r);ctx.arcTo(x,y+w.h,x,y,r);ctx.arcTo(x,y,x+w.w,y,r);ctx.closePath(); }
+async function watermark(srcBlob,wm){
+  var l=await loadImage(srcBlob), img=l.img;
+  var maxSide=state.config.maxImageSide;
+  var w=img.naturalWidth||img.width, ht=img.naturalHeight||img.height;
+  var sc=Math.min(1,maxSide/Math.max(w,ht)); w=Math.round(w*sc); ht=Math.round(ht*sc);
+  var c=document.createElement('canvas'); c.width=w; c.height=ht;
+  var ctx=c.getContext('2d'); ctx.drawImage(img,0,0,w,ht);
+  URL.revokeObjectURL(l.url);
+  var padX=Math.round(w*0.035);
+  var fs=clamp(Math.round(w*0.030),12,26);
+  var lines=wm.lines, lh=Math.round(fs*1.5);
+  var bandH=lh*lines.length+Math.round(fs*1.4);
+  var g=ctx.createLinearGradient(0,ht-bandH,0,ht);
+  g.addColorStop(0,'rgba(6,10,16,0)'); g.addColorStop(0.22,'rgba(6,10,16,0.5)'); g.addColorStop(1,'rgba(6,10,16,0.84)');
+  ctx.fillStyle=g; ctx.fillRect(0,ht-bandH,w,bandH);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  for(var i=0;i<lines.length;i++){
+    var y=ht-bandH+Math.round(fs*1.1)+lh*i+fs;
+    ctx.font=(i===0?'600 ':'400 ')+fs+'px Inter, system-ui, sans-serif';
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillText(lines[i],padX+1,y+1);
+    ctx.fillStyle=(i===0?'#ffffff':'rgba(255,255,255,0.92)'); ctx.fillText(lines[i],padX,y);
+  }
+  ctx.font='700 '+Math.round(fs*0.82)+'px Barlow, Inter, sans-serif';
+  var chip='CPM EVIDENCE', cw=ctx.measureText(chip).width, chW=cw+fs*1.2, chH=fs*1.9;
+  ctx.fillStyle='rgba(194,90,23,0.92)';
+  roundRect(ctx,w-chW-padX,padX,{w:chW,h:chH},7); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.fillText(chip,w-chW-padX+fs*0.6,padX+fs*1.32);
+  var out=await new Promise(function(res){ c.toBlob(function(b){res(b);},'image/jpeg',state.config.jpegQuality); });
+  return out;
+}
+
+/* ============================== catalog + equipment API ============================== */
+async function loadCatalog(){
+  try{
+    var projects=await api('GET','/projects');
+    var full=[];
+    for(var i=0;i<projects.length;i++){
+      var centers=await api('GET','/projects/'+projects[i].project_id+'/centers');
+      full.push({id:projects[i].project_id,name:projects[i].name,centers:centers.map(function(c){
+        return {id:c.center_id,code:c.center_code,name:c.name,address:c.address,expectedCctv:c.expected_cctv_count,
+          lat:c.latitude,lng:c.longitude,state:c.state,city:c.city};
+      })});
+    }
+    state.projects=full; save();
+    return true;
+  }catch(e){
+    toast(state.projects.length?'Could not refresh projects — showing last known list':'Could not load projects: '+apiErrMsg(e),'warn');
+    return false;
+  }
+}
+async function createEquipment(inst,payload){
+  try{ return await api('POST','/installations/'+inst.id+'/equipment',{body:payload}); }
+  catch(e){ toast('Could not add '+payload.equipment_type+': '+apiErrMsg(e),'bad'); return null; }
+}
+function queuePatch(equipmentId,fields,instId){
+  state.syncQueue.push({id:uid('SYQ'),type:'patch',refId:equipmentId,instId:instId,status:'Pending',attempts:0,nextRetryAt:0,fields:fields,queuedAt:Date.now()});
+  save();
+}
+
+/* ============================== domain ops ============================== */
+function activeInst(){ return state.activeId?state.installations[state.activeId]:null; }
+function centerByCode(code){
+  for(var i=0;i<state.projects.length;i++){var p=state.projects[i];for(var j=0;j<p.centers.length;j++){if(p.centers[j].code===code)return {project:p,center:p.centers[j]};}}
+  return null;
+}
+async function startInstallation(projectId,centerCode){
+  var ref=centerByCode(centerCode); if(!ref)return null;
+  var g=evalGps({lat:ref.center.lat,lng:ref.center.lng});
+  var resp;
+  try{
+    resp=await api('POST','/installations',{body:{
+      project_id:ref.project.id, center_id:ref.center.id, client_uuid:uid('CUI'), device_id:state.deviceId,
+      gps:{status:g.status,latitude:g.lat,longitude:g.lng,accuracy:g.accuracy,distance_m:g.distance}
+    }});
+  }catch(e){ toast('Could not start installation: '+apiErrMsg(e),'bad'); return null; }
+  var id=resp.installation_id;
+  var inst={
+    id:id, projectId:ref.project.id, projectName:ref.project.name,
+    centerCode:ref.center.code, centerId:ref.center.id, centerName:ref.center.name, address:ref.center.address,
+    expectedCctv:ref.center.expectedCctv, centerLat:ref.center.lat, centerLng:ref.center.lng,
+    technicianId:state.session.userId, technicianName:state.session.name,
+    status:'Not Started', gps:g,
+    startSelfieId:null, submitSelfieId:null,
+    cameras:[], monitors:[], upsUnits:[], routers:[],
+    issues:[], evidence:{}, timeline:[],
+    createdAt:Date.now(), startedAt:Date.now(), updatedAt:Date.now(), submittedAt:null,
+    submitted:false, serverAck:false, ack:false
+  };
+  state.installations[id]=inst; state.activeId=id;
+  tl(inst,'Installation created'); audit('installation',id,'CREATED',{newValue:centerCode});
+  save();
+  var r=await createEquipment(inst,{equipment_type:'Router',unit_number:'RTR-01',status:'Installed'});
+  inst.routers.push({id:r?r.equipment_id:uid('RTR'),number:'RTR-01',serial:'',working:null,speedTest:'',photoIds:[]});
+  save();
+  return inst;
+}
+function isDeleted(inst,evId){ var e=inst.evidence[evId]; return !!(e&&e.deleted); }
+function livePhotos(inst,arr){ return (arr||[]).filter(function(id){return !isDeleted(inst,id);}); }
+function camsWithEvidence(inst){ return inst.cameras.filter(function(c){return livePhotos(inst,c.photoIds).length>0;}).length; }
+
+async function addEvidence(inst,equip){
+  // equip: {type,unitNumber,location,equipmentId, arrRef:function->array}
+  return new Promise(function(resolve){
+    var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
+    if(g.status==='Outside Geofence'){
+      sheet('Outside center location','<div class="banner bad">'+h(g.message)+'</div>'+
+        '<div class="readout"><div class="kv"><span>Distance</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'—')+'</b></div>'+
+        '<div class="kv"><span>Geofence</span><b>'+state.config.geofenceRadius+' m</b></div></div>'+
+        '<button class="btn block" id="okc">Understood</button>');
+      $('#okc').addEventListener('click',closeSheet);
+      resolve(false); return;
+    }
+    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS —')+'  ·  ±'+(g.accuracy!=null?g.accuracy:'?')+'m  ·  '+g.status;
+    openCamera({facing:'environment',guide:true,gpsText:gtxt,title:equip.type+' '+equip.unitNumber,onCapture:async function(raw){
+      try{
+        var evId=uid('EVD');
+        var wm=await watermark(raw,{lines:[
+          inst.centerCode+' · '+inst.centerName,
+          equip.type+' '+equip.unitNumber+' · '+(equip.location||'—'),
+          fmtDate(Date.now())+'  '+fmtTime(Date.now()),
+          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'✓ Verified':'⚠ '+g.status),
+          'TECH '+inst.technicianId
+        ]});
+        var hash=await sha256(raw);
+        await blobPut(evId,{original:raw,watermarked:wm,versions:[]});
+        inst.evidence[evId]={
+          evidenceId:evId, installationId:inst.id, equipmentId:equip.equipmentId, equipmentType:equip.type,
+          unitNumber:equip.unitNumber, location:equip.location||null, technicianId:inst.technicianId,
+          date:fmtDate(Date.now()), time:fmtTime(Date.now()),
+          lat:g.lat, lng:g.lng, gpsAccuracy:g.accuracy, gpsVerified:g.status==='Verified', gpsStatus:g.status,
+          hash:hash, version:1, syncStatus:'Pending', createdAt:Date.now(), updatedAt:Date.now(),
+          deleted:false
+        };
+        equip.arrRef().push(evId);
+        if(inst.status==='Not Started')inst.status='In Progress';
+        tl(inst,equip.type+' '+equip.unitNumber+' evidence captured');
+        audit('evidence',evId,'CREATED',{newValue:equip.type+' '+equip.unitNumber});
+        if(inst.submitted)queueSync('evidence',evId,inst.id);
+        inst.updatedAt=Date.now(); save(); resolve(true);
+      }catch(e){ toast('Could not process photo: '+e.message,'bad'); resolve(false); }
+    }});
+  });
+}
+async function captureSelfie(inst,which){
+  return new Promise(function(resolve){
+    var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
+    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS —')+'  ·  '+g.status;
+    openCamera({facing:'user',guide:false,gpsText:gtxt,title:(which==='start'?'Start selfie':'Submission selfie'),onCapture:async function(raw){
+      try{
+        var evId=uid('SLF');
+        var wm=await watermark(raw,{lines:[
+          inst.centerCode+' · '+inst.centerName,
+          (which==='start'?'START SELFIE':'SUBMISSION SELFIE')+' · '+inst.id,
+          fmtDate(Date.now())+'  '+fmtTime(Date.now()),
+          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'✓ Verified':'⚠ '+g.status),
+          'TECH '+inst.technicianId
+        ]});
+        var hash=await sha256(raw);
+        await blobPut(evId,{original:raw,watermarked:wm,versions:[]});
+        inst.evidence[evId]={evidenceId:evId,installationId:inst.id,equipmentId:null,equipmentType:'Selfie',unitNumber:which,location:null,
+          technicianId:inst.technicianId,date:fmtDate(Date.now()),time:fmtTime(Date.now()),
+          lat:g.lat,lng:g.lng,gpsAccuracy:g.accuracy,gpsVerified:g.status==='Verified',gpsStatus:g.status,
+          hash:hash,version:1,syncStatus:'Pending',createdAt:Date.now(),updatedAt:Date.now(),deleted:false};
+        if(which==='start')inst.startSelfieId=evId; else inst.submitSelfieId=evId;
+        tl(inst,(which==='start'?'Start selfie captured':'Final selfie captured'));
+        audit('selfie',evId,'CREATED',{newValue:which});
+        if(inst.submitted)queueSync('evidence',evId,inst.id);
+        save(); resolve(true);
+      }catch(e){ toast('Selfie failed: '+e.message,'bad'); resolve(false); }
+    }});
+  });
+}
+async function deleteEvidence(inst,evId){
+  var reason=await promptText('Delete photo','Why are you deleting this evidence?','Incorrect photograph');
+  if(reason==null)return;
+  var e=inst.evidence[evId]; if(!e)return;
+  e.deleted=true; e.deleteReason=reason; e.updatedAt=Date.now();
+  await blobDel(evId); delete URLCACHE[evId];
+  audit('evidence',evId,'DELETED',{reason:reason,oldValue:e.equipmentType+' '+e.unitNumber});
+  tl(inst,'Evidence '+evId.slice(0,10)+' deleted');
+  save(); toast('Evidence deleted — audit event recorded'); render();
+}
+async function replaceEvidence(inst,evId){
+  var reason=await promptText('Replace evidence','Reason for replacement (kept in audit history)','Better angle / clearer image');
+  if(reason==null)return;
+  var e=inst.evidence[evId]; if(!e)return;
+  var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
+  openCamera({facing:e.equipmentType==='Selfie'?'user':'environment',guide:e.equipmentType!=='Selfie',gpsText:g.status,title:'Replace '+e.equipmentType+' '+e.unitNumber,onCapture:async function(raw){
+    try{
+      var rec=await blobGet(evId)||{versions:[]};
+      rec.versions=rec.versions||[]; if(rec.watermarked)rec.versions.push({blob:rec.watermarked,version:e.version,ts:Date.now(),reason:reason});
+      var wm=await watermark(raw,{lines:[
+        inst.centerCode+' · '+inst.centerName,
+        e.equipmentType+' '+e.unitNumber+' · REPLACED v'+(e.version+1),
+        fmtDate(Date.now())+'  '+fmtTime(Date.now()),
+        (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+g.status,
+        'TECH '+inst.technicianId
+      ]});
+      rec.original=raw; rec.watermarked=wm;
+      await blobPut(evId,rec); delete URLCACHE[evId];
+      var oldHash=e.hash; e.hash=await sha256(raw); e.version++; e.updatedAt=Date.now(); e.syncStatus='Pending'; e.lastReplaceReason=reason;
+      audit('evidence',evId,'REPLACED',{reason:reason,oldValue:'v'+(e.version-1)+' '+oldHash.slice(0,12),newValue:'v'+e.version+' '+e.hash.slice(0,12)});
+      tl(inst,e.equipmentType+' '+e.unitNumber+' evidence replaced (v'+e.version+')');
+      queueSync('evidence',evId,inst.id);
+      save(); toast('Evidence replaced — previous version retained'); render();
+    }catch(err){ toast('Replace failed: '+err.message,'bad'); }
+  }});
+}
+function promptText(title,label,ph){
+  return new Promise(function(resolve){
+    sheet(title,'<div class="field"><label for="ptxt">'+h(label)+'</label><textarea id="ptxt" placeholder="'+h(ph||'')+'"></textarea></div>'+
+      '<div style="display:flex;gap:10px"><button class="btn ghost block" id="pcancel">Cancel</button><button class="btn primary block" id="pok">Save</button></div>');
+    $('#pcancel').addEventListener('click',function(){closeSheet();resolve(null);});
+    $('#pok').addEventListener('click',function(){var v=$('#ptxt').value.trim();if(!v){$('#ptxt').focus();return;}closeSheet();resolve(v);});
+  });
+}
+function dupSerialLocal(serial){
+  // offline fallback only — scans what's on this device when /assets/check can't be reached
+  var insts=state.installations;
+  for(var k in insts){ var it=insts[k];
+    var all=[].concat(it.cameras,it.monitors,it.upsUnits,it.routers);
+    for(var i=0;i<all.length;i++){ if(all[i].serial&&all[i].serial.toLowerCase()===serial.toLowerCase()&&it.id!==state.activeId){ return {serial:serial,centerCode:it.centerCode,type:'prior installation (this device, unconfirmed)'}; } }
+  }
+  return null;
+}
+async function dupSerial(serial){
+  serial=(serial||'').trim(); if(!serial)return null;
+  try{
+    var r=await api('GET','/assets/check?serial='+encodeURIComponent(serial));
+    if(r.duplicate&&r.conflict)return {serial:serial,centerCode:r.conflict.center_code||r.conflict.installation_id,type:r.conflict.equipment_type||r.conflict.source};
+    return null;
+  }catch(e){ return dupSerialLocal(serial); }
+}
+
+/* ============================== compliance ============================== */
+function compliance(inst){
+  var parts=[], exp=inst.expectedCctv||0;
+  var cwe=camsWithEvidence(inst);
+  parts.push({label:'Start selfie',v:inst.startSelfieId?1:0,w:1});
+  parts.push({label:'Submission selfie',v:inst.submitSelfieId?1:0,w:1});
+  parts.push({label:'CCTV evidence ('+cwe+'/'+(exp||inst.cameras.length||0)+')',v:exp?clamp(cwe/exp,0,1):(inst.cameras.length?1:0),w:4});
+  parts.push({label:'Monitor evidence',v:inst.monitors.some(function(u){return livePhotos(inst,u.photoIds).length;})?1:0,w:1});
+  parts.push({label:'UPS evidence',v:inst.upsUnits.some(function(u){return livePhotos(inst,u.photoIds).length;})?1:0,w:1});
+  var r=inst.routers[0];
+  parts.push({label:'Router photo',v:(r&&livePhotos(inst,r.photoIds).length)?1:0,w:1});
+  parts.push({label:'Internet working answered',v:(r&&r.working!=null)?1:0,w:1});
+  parts.push({label:'All issues have evidence',v:inst.issues.length?(inst.issues.every(function(i){return i.photoId;})?1:0):1,w:1});
+  var num=0,den=0; parts.forEach(function(p){num+=p.v*p.w;den+=p.w;});
+  return {percent:den?Math.round(num/den*100):0,parts:parts};
+}
+
+/* ============================== app chrome ============================== */
+var NAVSTACK=[];
+function shell(o){
+  // o: {title,sub,back,menu,body,action}
+  return ''+
+  '<div class="appbar">'+
+    (o.back?'<button class="iconbtn" id="navback" aria-label="Back">‹</button>':'<div class="brand">CPM</div>')+
+    '<div class="ttl"><b>'+h(o.title)+'</b>'+(o.sub?'<span>'+h(o.sub)+'</span>':'')+'</div>'+
+    (o.menu===false?'<div style="width:38px"></div>':'<button class="iconbtn" id="navmenu" aria-label="Menu">⋮</button>')+
+  '</div>'+
+  '<div class="strip" id="strip"><span class="dot"></span><b>—</b></div>'+
+  '<div class="scroll">'+o.body+'</div>'+
+  (o.action?'<div class="actionbar">'+o.action+'</div>':'');
+}
+function bindChrome(){
+  var b=$('#navback'); if(b)b.addEventListener('click',function(){ CPM.back(); });
+  var m=$('#navmenu'); if(m)m.addEventListener('click',openMenu);
+  updateStrip();
+}
+function openMenu(){
+  var s=state.session;
+  var links=[
+    ['⟳','Sync Center','#/sync'],
+    ['◷','Installation History','#/history'],
+    ['❏','Audit Trail','#/audit'],
+    ['⚙','Settings & Config','#/settings']
+  ];
+  if(s&&s.role!=='Technician')links=[['◱','Stakeholder View','#/stakeholder']].concat(links.slice(1));
+  var html=links.map(function(l){return '<div class="menu-link" data-go="'+l[2]+'"><span class="mi">'+l[0]+'</span>'+h(l[1])+'</div>';}).join('')+
+    '<div class="menu-link" data-act="logout"><span class="mi">⏻</span>Sign out'+(s?' ('+h(s.name)+')':'')+'</div>';
+  sheet('Menu',html);
+  $$('.menu-link',MODAL).forEach(function(el){
+    el.addEventListener('click',function(){
+      var go=el.getAttribute('data-go');
+      if(go){closeSheet();CPM.go(go);return;}
+      if(el.getAttribute('data-act')==='logout'){
+        closeSheet();
+        confirmModal({title:'Sign out?',body:pendingCount()?'<b>'+pendingCount()+'</b> evidence items are not yet synced. Signing out keeps them on this device; sync as soon as you are online.':'You can sign back in any time.',confirmText:'Sign out',danger:true}).then(async function(ok){
+          if(ok){
+            var uidLog=state.session.userId, rt=state.session.refreshToken;
+            if(rt&&online()){ try{ await api('POST','/auth/logout',{body:{refresh_token:rt}}); }catch(e){} }
+            audit('auth',uidLog,'LOGOUT',{}); state.session=null; save(); CPM.go('#/login');
+          }
+        });
+      }
+    });
+  });
+}
+function pendingCount(){ return state.syncQueue.filter(function(x){return x.status!=='Synced';}).length; }
+
+/* ============================== shared UI bits ============================== */
+function statusBadge(st){
+  var m={'Not Started':'b-mute','In Progress':'b-warn','Partially Completed':'b-info','Completed':'b-good'};
+  return '<span class="badge '+(m[st]||'b-mute')+'"><span class="bd"></span>'+h(st)+'</span>';
+}
+function syncPill(s){
+  var m={'Pending':'b-mute','Uploading':'b-info','Synced':'b-good','Failed':'b-bad'};
+  return '<span class="badge '+(m[s]||'b-mute')+(s==='Uploading'?' pulse':'')+'"><span class="bd"></span>'+h(s)+'</span>';
+}
+function sevBadge(s){
+  var m={'Critical':'b-bad','High':'b-warn','Medium':'b-warn','Low':'b-mute'};
+  return '<span class="badge '+(m[s]||'b-mute')+'"><span class="bd"></span>'+h(s)+'</span>';
+}
+function gpsLivePanel(g){
+  return '<div class="readout" id="gpslive">'+
+    '<div class="kv"><span>status</span><b>'+h(g.status)+'</b></div>'+
+    '<div class="kv"><span>lat, lng</span><b>'+(g.lat!=null?g.lat.toFixed(6)+', '+g.lng.toFixed(6):'—')+'</b></div>'+
+    '<div class="kv"><span>accuracy</span><b>'+(g.accuracy!=null?'± '+g.accuracy+' m':'—')+'</b></div>'+
+    '<div class="kv"><span>distance to center</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'—')+'</b></div>'+
+    '<div class="kv"><span>geofence</span><b>'+state.config.geofenceRadius+' m</b></div>'+
+    '<div class="kv"><span>provider</span><b>'+h(g.provider)+'</b></div>'+
+  '</div>';
+}
+function thumbHTML(inst,evId,extra){
+  var e=inst.evidence[evId]; if(!e||e.deleted)return '';
+  return '<div class="thumb" data-view="'+evId+'"><img data-ev="'+evId+'" alt="evidence"><span class="tsync">'+h(e.syncStatus||'Pending')+'</span>'+(extra||'')+'</div>';
+}
+function evViewer(evId){
+  var inst=activeInst()||findInstByEvidence(evId);
+  var e=inst&&inst.evidence[evId]; if(!e)return;
+  var canDelete=inst&&!inst.submitted;
+  var canReplace=inst&&inst.submitted;
+  var v=document.createElement('div'); v.className='viewer';
+  v.innerHTML='<div class="vtop"><button class="cambtn" id="vx" style="background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:8px 12px">Close</button>'+
+    '<span>'+h(e.equipmentType+' '+(e.unitNumber||''))+'</span></div>'+
+    '<div class="vimg"><img data-ev="'+evId+'" alt="evidence full"></div>'+
+    '<div class="vmeta">'+
+      '<div class="readout">'+
+        '<div class="kv"><span>evidence id</span><b>'+h(e.evidenceId)+'</b></div>'+
+        '<div class="kv"><span>installation</span><b>'+h(e.installationId)+'</b></div>'+
+        '<div class="kv"><span>captured</span><b>'+h(e.date+' '+e.time)+'</b></div>'+
+        '<div class="kv"><span>lat, lng</span><b>'+(e.lat!=null?e.lat.toFixed(6)+', '+e.lng.toFixed(6):'—')+'</b></div>'+
+        '<div class="kv"><span>gps</span><b>'+h(e.gpsStatus)+' ± '+(e.gpsAccuracy||'?')+'m</b></div>'+
+        '<div class="kv"><span>sha-256</span><b style="word-break:break-all;font-size:10px">'+h(e.hash)+'</b></div>'+
+        '<div class="kv"><span>version</span><b>v'+e.version+'</b></div>'+
+        '<div class="kv"><span>sync</span><b>'+h(e.syncStatus)+'</b></div>'+
+      '</div>'+
+      (canDelete?'<button class="btn danger block sm" id="vdel">Delete evidence</button>':'')+
+      (canReplace?'<button class="btn ghost block sm" id="vrep">Replace evidence (keeps history)</button>':'')+
+    '</div>';
+  document.body.appendChild(v);
+  hydrateImages(v);
+  $('#vx',v).addEventListener('click',function(){v.remove();});
+  if($('#vdel',v))$('#vdel',v).addEventListener('click',function(){v.remove();deleteEvidence(inst,evId);});
+  if($('#vrep',v))$('#vrep',v).addEventListener('click',function(){v.remove();replaceEvidence(inst,evId);});
+}
+function findInstByEvidence(evId){
+  for(var k in state.installations){ if(state.installations[k].evidence[evId])return state.installations[k]; }
+  return null;
+}
+function bindThumbs(root){
+  $$('[data-view]',root).forEach(function(el){ el.addEventListener('click',function(){ evViewer(el.getAttribute('data-view')); }); });
+}
+
+/* ============================== VIEWS ============================== */
+var VIEWS={};
+
+VIEWS['login']={html:function(){
+  return '<div class="appbar"><div class="brand">CPM</div><div class="ttl"><b>Ground Evidence</b><span>Field installation · v1</span></div><div style="width:38px"></div></div>'+
+  '<div class="strip" id="strip"><span class="dot"></span><b>—</b></div>'+
+  '<div class="scroll">'+
+  '<div class="card stack">'+
+    '<div class="eyebrow">Sign in</div>'+
+    '<h1 class="h-lg">Verify your technician identity</h1>'+
+    '<p class="lede">Every installation and every photo is bound to the person who signs in here. Your role and permissions come from the server.</p>'+
+    '<div class="seg" role="tablist"><button id="tabOtp" aria-pressed="true">Mobile + OTP</button><button id="tabVc" aria-pressed="false">Vendor code</button></div>'+
+    '<div id="loginForm"></div>'+
+  '</div>'+
+  '</div>';
+},after:function(){
+  var mode='otp', challengeId=null, busy=false;
+  function setBusy(b){ busy=b; $$('#loginForm button').forEach(function(el){el.disabled=b;}); }
+  function paint(){
+    var f=$('#loginForm');
+    if(mode==='otp'){
+      f.innerHTML='<div class="field"><label for="mob">Mobile number</label><input id="mob" class="mono" inputmode="numeric" placeholder="9876543210" value="9876543210"></div>'+
+        '<div id="otpArea"></div>'+
+        '<button class="btn primary block" id="sendOtp">Send OTP</button>';
+      $('#sendOtp').addEventListener('click',async function(){
+        if(busy)return;
+        var mob=$('#mob').value.trim(); if(mob.length<6){toast('Enter a valid mobile number','bad');return;}
+        setBusy(true);
+        try{
+          var resp=await api('POST','/auth/login',{body:{mobile_number:mob}});
+          challengeId=resp.challenge_id;
+          $('#otpArea').innerHTML=(resp.dev_otp?'<div class="banner info">Dev OTP: <b class="mono">'+h(resp.dev_otp)+'</b> — auto-filled below.</div>':'<div class="banner info">Code sent to '+h(mob)+'.</div>')+
+            '<div class="field"><label for="otp">Enter OTP</label><input id="otp" class="mono" inputmode="numeric" value="'+h(resp.dev_otp||'')+'"></div>';
+          $('#sendOtp').textContent='Verify & sign in';
+          $('#sendOtp').onclick=async function(){
+            if(busy)return;
+            var code=$('#otp').value.trim(); if(!code){toast('Enter the code','bad');return;}
+            setBusy(true);
+            try{ var t=await api('POST','/auth/verify-otp',{body:{challenge_id:challengeId,code:code}}); await finishLogin(t); }
+            catch(e){ toast(apiErrMsg(e),'bad'); }
+            setBusy(false);
+          };
+        }catch(e){ toast(apiErrMsg(e),'bad'); }
+        setBusy(false);
+      });
+    }else{
+      f.innerHTML='<div class="field"><label for="vc">Vendor code</label><input id="vc" placeholder="VEND-ARC-12" value="VEND-ARC-12"></div>'+
+        '<div class="field"><label for="pw">Password</label><input id="pw" type="password" value="demo1234"></div>'+
+        '<button class="btn primary block" id="doVc">Sign in</button>';
+      $('#doVc').addEventListener('click',async function(){
+        if(busy)return;
+        var vc=$('#vc').value.trim(), pw=$('#pw').value;
+        if(!vc||!pw){toast('Enter vendor code and password','bad');return;}
+        setBusy(true);
+        try{ var t=await api('POST','/auth/login',{body:{vendor_code:vc,password:pw}}); await finishLogin(t); }
+        catch(e){ toast(apiErrMsg(e),'bad'); }
+        setBusy(false);
+      });
+    }
+  }
+  async function finishLogin(t){
+    var u=t.user;
+    state.session={userId:u.user_id,name:u.name,mobile:u.mobile_number,vendorCode:u.vendor_code,
+      role:u.role,accessToken:t.access_token,refreshToken:t.refresh_token,loginAt:Date.now()};
+    audit('auth',u.user_id,'LOGIN',{newValue:u.role}); save();
+    toast('Signed in as '+u.name);
+    await loadCatalog();
+    CPM.go(u.role==='Technician'?'#/home':'#/stakeholder');
+  }
+  $('#tabOtp').addEventListener('click',function(){mode='otp';$('#tabOtp').setAttribute('aria-pressed','true');$('#tabVc').setAttribute('aria-pressed','false');paint();});
+  $('#tabVc').addEventListener('click',function(){mode='vc';$('#tabVc').setAttribute('aria-pressed','true');$('#tabOtp').setAttribute('aria-pressed','false');paint();});
+  paint(); updateStrip();
+}};
+
+VIEWS['home']={html:function(){
+  var s=state.session;
+  var assigned=state.assignments.map(function(code){var r=centerByCode(code);return r?{p:r.project,c:r.center}:null;}).filter(Boolean);
+  var resume=activeInst();
+  return shell({title:'Home',sub:s.name+' · '+s.userId,body:
+    (resume&&!resume.submitted?'<div class="card stack" style="border-color:var(--accent)">'+
+      '<div class="between"><div class="eyebrow" style="color:var(--accent)">Resumed session</div>'+statusBadge(resume.status)+'</div>'+
+      '<h2 class="h-md">'+h(resume.centerName)+'</h2>'+
+      '<div class="lede mono">'+h(resume.id)+' · '+camsWithEvidence(resume)+'/'+resume.expectedCctv+' cameras · '+pendingCount()+' pending sync</div>'+
+      '<button class="btn primary block" data-go="#/dash">Continue installation</button></div>':'')+
+    '<div class="card stack">'+
+      '<div class="eyebrow">A · My assignments</div>'+
+      (assigned.length?assigned.map(function(a){
+        return '<button class="row" data-start="'+a.p.id+'|'+a.c.code+'"><span class="stripe info"></span><div class="rmain"><b>'+h(a.c.name)+'</b><small>'+h(a.c.code)+' · '+h(a.p.name)+' · CCTV '+a.c.expectedCctv+'</small></div><span class="chev">›</span></button>';
+      }).join(''):'<p class="lede">No centers assigned. Use Project → Center below.</p>')+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="eyebrow">B · Project → Center</div>'+
+      '<p class="lede">Vendor allocation is not managed here — pick the center you are physically at.</p>'+
+      '<button class="btn ghost block" data-go="#/projects">Browse projects</button>'+
+    '</div>'+
+    '<div class="grid3">'+
+      '<div class="tile"><div class="k num">'+Object.keys(state.installations).length+'</div><div class="l">Installations</div></div>'+
+      '<div class="tile"><div class="k num">'+pendingCount()+'</div><div class="l">Pending sync</div></div>'+
+      '<div class="tile"><div class="k num">'+state.audit.length+'</div><div class="l">Audit events</div></div>'+
+    '</div>'
+  });
+},after:function(){
+  bindChrome();
+  $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});});
+  $$('[data-start]').forEach(function(el){el.addEventListener('click',function(){
+    var parts=el.getAttribute('data-start').split('|');
+    CPM.go('#/center/'+parts[1]);
+  });});
+}};
+
+VIEWS['projects']={html:function(){
+  return shell({title:'Projects',back:true,body:
+    state.projects.map(function(p){
+      return '<button class="row" data-go="#/project/'+p.id+'"><span class="stripe info"></span><div class="rmain"><b>'+h(p.name)+'</b><small>'+h(p.id)+' · '+p.centers.length+' centers</small></div><span class="chev">›</span></button>';
+    }).join('')
+  });
+},after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['project']={html:function(p){
+  var proj=state.projects.find(function(x){return x.id===p[0];})||state.projects[0];
+  return shell({title:proj.name,sub:proj.id,back:true,body:
+    '<div class="eyebrow">Select the center you are at</div>'+
+    proj.centers.map(function(c){
+      return '<button class="row" data-go="#/center/'+c.code+'"><span class="stripe mute"></span><div class="rmain"><b>'+h(c.name)+'</b><small>'+h(c.code)+' · '+h(c.city)+' · CCTV '+c.expectedCctv+'</small></div><span class="chev">›</span></button>';
+    }).join('')
+  });
+},after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['center']={html:function(p){
+  var ref=centerByCode(p[0]); if(!ref)return shell({title:'Center',back:true,body:'<div class="banner bad">Center not found.</div>'});
+  var c=ref.center;
+  var g=evalGps({lat:c.lat,lng:c.lng});
+  return shell({title:'Confirm center',sub:c.code,back:true,body:
+    '<div class="card stack">'+
+      '<div class="between"><div class="eyebrow">Center confirmation</div>'+gpsBadge(g)+'</div>'+
+      '<h1 class="h-lg">'+h(c.name)+'</h1>'+
+      '<div class="readout">'+
+        '<div class="kv"><span>project</span><b>'+h(ref.project.name)+'</b></div>'+
+        '<div class="kv"><span>center code</span><b>'+h(c.code)+'</b></div>'+
+        '<div class="kv"><span>address</span><b style="text-align:right;max-width:60%">'+h(c.address)+'</b></div>'+
+        '<div class="kv"><span>expected cctv</span><b>'+c.expectedCctv+'</b></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="eyebrow">Physical presence</div>'+
+      gpsLivePanel(g)+
+      (g.message?'<div class="banner '+(g.status==='Outside Geofence'?'bad':g.status==='Verified'?'good':g.status==='Suspicious'?'bad':'warn')+'">'+h(g.message)+'</div>':'')+
+      (g.status==='Unavailable'?'<div class="banner info">On desktop? Open <b>Settings</b> and enable <b>GPS test mode</b> to walk the flow.</div>':'')+
+    '</div>'+
+    '<label style="display:flex;gap:10px;align-items:flex-start;font-size:13px"><input type="checkbox" id="confok" style="width:auto;margin-top:3px"> I confirm I am at <b>'+h(c.name)+'</b> and the details above are correct.</label>',
+    action:'<button class="btn primary block" id="startBtn" disabled>Start installation</button>'
+  });
+},after:function(p){
+  bindChrome();
+  var ref=centerByCode(p[0]);
+  $('#confok').addEventListener('change',function(e){ $('#startBtn').disabled=!e.target.checked; });
+  $('#startBtn').addEventListener('click',async function(){
+    $('#startBtn').disabled=true; $('#startBtn').textContent='Starting…';
+    var inst=await startInstallation(ref.project.id,ref.center.code);
+    if(inst)CPM.go('#/selfie/start');
+    else { $('#startBtn').disabled=false; $('#startBtn').textContent='Start installation'; }
+  });
+}};
+
+VIEWS['selfie']={html:function(p){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var which=p[0]||'start';
+  var has=which==='start'?inst.startSelfieId:inst.submitSelfieId;
+  return shell({title:which==='start'?'Start selfie':'Submission selfie',sub:inst.centerCode,back:true,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">Mandatory live selfie</div>'+
+      '<p class="lede">Captured from the app camera only — no gallery. Stamped with your ID, the center, time and GPS.</p>'+
+      (has?'<div class="thumbs">'+thumbHTML(inst,has)+'</div><div class="banner good">Selfie captured.</div>':
+        '<div class="banner warn">No '+which+' selfie yet.</div>')+
+      '<button class="btn primary block" id="takeSelfie">'+(has?'Retake selfie':'Capture selfie')+'</button>'+
+    '</div>',
+    action: has?'<button class="btn primary block" id="contBtn">'+(which==='start'?'Enter installation dashboard':'Continue to submit')+'</button>':''
+  });
+},after:function(p){
+  bindChrome();
+  var inst=activeInst(); var which=p[0]||'start';
+  hydrateImages(APP); bindThumbs(APP);
+  $('#takeSelfie').addEventListener('click',function(){ captureSelfie(inst,which).then(function(ok){ if(ok)render(); }); });
+  var cb=$('#contBtn'); if(cb)cb.addEventListener('click',function(){ CPM.go(which==='start'?'#/dash':'#/submit'); });
+}};
+
+VIEWS['dash']={html:function(){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var comp=compliance(inst);
+  var openIssues=inst.issues.filter(function(i){return i.status!=='Resolved';}).length;
+  var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
+  return shell({title:'Installation',sub:inst.id,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">'+h(inst.centerCode)+'</div>'+
+      '<h1 class="h-lg">'+h(inst.centerName)+'</h1>'+
+      '<div class="between">'+statusBadge(inst.status)+gpsBadge(g)+'</div>'+
+      '<div class="between" style="gap:16px;align-items:center;margin-top:4px">'+
+        '<div class="ring" style="--v:'+comp.percent+'"><span class="rv">'+comp.percent+'%</span><span class="rl">evidence</span></div>'+
+        '<div class="stack" style="flex:1;gap:6px">'+
+          comp.parts.slice(0,5).map(function(pt){
+            var pct=Math.round(pt.v*100);
+            return '<div style="font-size:11.5px;display:flex;justify-content:space-between"><span class="muted">'+h(pt.label)+'</span><span class="num">'+pct+'%</span></div>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="banner info" style="margin-top:2px">Status is <b>your</b> call. Compliance is what the system has actually received — the two are shown separately.</div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="tile"><div class="k num">'+camsWithEvidence(inst)+' / '+inst.expectedCctv+'</div><div class="l">CCTV cameras</div></div>'+
+      '<div class="tile"><div class="k num">'+inst.monitors.length+'</div><div class="l">Monitors</div></div>'+
+      '<div class="tile"><div class="k num">'+inst.upsUnits.length+'</div><div class="l">UPS units</div></div>'+
+      '<div class="tile"><div class="k num">'+(inst.routers[0]&&livePhotos(inst,inst.routers[0].photoIds).length?'1':'0')+'</div><div class="l">Router</div></div>'+
+    '</div>'+
+    (openIssues?'<div class="banner warn"><b>'+openIssues+'</b> open issue'+(openIssues>1?'s':'')+' on this installation.</div>':'')+
+    '<div class="stack">'+
+      '<button class="row" data-go="#/cctv"><span class="stripe warn"></span><div class="rmain"><b>Continue CCTV</b><small>'+inst.cameras.length+' cameras recorded · expected '+inst.expectedCctv+'</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/monitor"><span class="stripe info"></span><div class="rmain"><b>Monitors</b><small>'+inst.monitors.length+' units</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/ups"><span class="stripe info"></span><div class="rmain"><b>UPS</b><small>'+inst.upsUnits.length+' units</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/internet"><span class="stripe info"></span><div class="rmain"><b>Internet router</b><small>'+(inst.routers[0].working==null?'working status not set':'internet '+(inst.routers[0].working?'working':'not working'))+'</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/issue/new"><span class="stripe bad"></span><div class="rmain"><b>Report an issue</b><small>'+inst.issues.length+' logged</small></div><span class="chev">›</span></button>'+
+    '</div>'+
+    '<div class="field"><label>Installation status (your decision)</label>'+
+      '<select id="stsel">'+['Not Started','In Progress','Partially Completed','Completed'].map(function(s){return '<option'+(s===inst.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>',
+    action:'<button class="btn primary block" data-go="#/review">Review &amp; submit</button>'
+  });
+},after:function(){
+  bindChrome();
+  $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});});
+  $('#stsel').addEventListener('change',function(e){
+    var inst=activeInst(), old=inst.status; inst.status=e.target.value;
+    audit('installation',inst.id,'STATUS_CHANGED',{oldValue:old,newValue:inst.status});
+    tl(inst,'Status set to '+inst.status); queueInstStatus(inst); save(); softRefresh();
+  });
+}};
+
+VIEWS['cctv']={html:function(){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var cwe=camsWithEvidence(inst);
+  return shell({title:'CCTV',sub:cwe+' / '+inst.expectedCctv+' with evidence',back:true,body:
+    '<div class="card stack">'+
+      '<div class="between"><div class="eyebrow">Expected cameras</div><span class="num h-lg">'+inst.expectedCctv+'</span></div>'+
+      '<p class="lede">You choose the numbering and the location. Duplicate numbers in this installation are blocked. Missing cameras stay visible — they never block submission.</p>'+
+      '<button class="btn primary block" id="addCam">Add camera</button>'+
+    '</div>'+
+    (inst.cameras.length?'':'<div class="banner info">No cameras yet. Add the first — the app auto-advances to the next after each save.</div>')+
+    inst.cameras.map(function(c){
+      var n=livePhotos(inst,c.photoIds).length;
+      var stripe=n>=state.config.minPhotos?'good':(c.status&&c.status!=='Installed'?'bad':'warn');
+      return '<button class="row" data-cam="'+encodeURIComponent(c.id)+'"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(c.number)+'</b><small>'+h(c.location||'location not set')+' · '+n+' photo'+(n===1?'':'s')+(c.status?' · '+h(c.status):'')+(c.issueId?' · ⚠ issue':'')+'</small></div><span class="chev">›</span></button>';
+    }).join('')+
+    (inst.cameras.length>inst.expectedCctv?'<div class="banner good">Additional cameras recorded: +'+(inst.cameras.length-inst.expectedCctv)+' beyond expected.</div>':''),
+    action:'<button class="btn ghost block" data-go="#/dash">Back to dashboard</button>'
+  });
+},after:function(){
+  bindChrome();
+  $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});});
+  $$('[data-cam]').forEach(function(el){el.addEventListener('click',function(){CPM.go('#/cam/'+el.getAttribute('data-cam'));});});
+  $('#addCam').addEventListener('click',async function(){
+    var inst=activeInst();
+    var n=inst.cameras.length+1, num='CAM-'+pad(n);
+    while(inst.cameras.some(function(c){return c.number===num;})){n++;num='CAM-'+pad(n);}
+    var resp=await createEquipment(inst,{equipment_type:'CCTV',unit_number:num,status:'Installed'});
+    if(!resp)return;
+    var cam={id:resp.equipment_id,number:num,location:'',customLocation:'',status:'Installed',remarks:'',photoIds:[],issueId:null};
+    inst.cameras.push(cam); tl(inst,'Camera '+num+' added'); save();
+    CPM.go('#/cam/'+encodeURIComponent(cam.id));
+  });
+}};
+
+VIEWS['cam']={html:function(p){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var id=decodeURIComponent(p[0]||'');
+  var cam=inst.cameras.find(function(c){return c.id===id;});
+  if(!cam)return shell({title:'Camera',back:true,body:'<div class="banner bad">Camera not found.</div>'});
+  var photos=livePhotos(inst,cam.photoIds);
+  var idx=inst.cameras.indexOf(cam)+1;
+  var cfg=state.config;
+  return shell({title:cam.number,sub:'Camera '+idx+' of '+inst.cameras.length,back:true,body:
+    '<div class="card stack">'+
+      '<div class="field"><label for="camnum">Camera number</label><input id="camnum" value="'+h(cam.number)+'"><span class="hint">Must be unique within this installation.</span></div>'+
+      '<div class="field"><label for="camloc">Location (mandatory)</label><select id="camloc">'+
+        '<option value="">— select —</option>'+cfg.cameraLocations.map(function(l){return '<option'+(l===cam.location?' selected':'')+'>'+h(l)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field" id="customWrap"'+(cam.location==='Other'?'':' hidden')+'><label for="camcustom">Describe location</label><input id="camcustom" value="'+h(cam.customLocation||'')+'"></div>'+
+      '<div class="field"><label for="camstat">Camera status</label><select id="camstat">'+cfg.cameraStatuses.map(function(s){return '<option'+(s===cam.status?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><label for="camrem">Remarks (optional)</label><textarea id="camrem">'+h(cam.remarks||'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="between"><div class="eyebrow">Photographs</div><span class="num">'+photos.length+' / '+cfg.maxPhotos+'</span></div>'+
+      '<p class="lede">At least '+cfg.minPhotos+', up to '+cfg.maxPhotos+'. Show the camera <b>and</b> enough surroundings to place it.</p>'+
+      '<div class="thumbs">'+
+        photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
+        (photos.length<cfg.maxPhotos?'<button class="thumb add" id="capCam">＋<span>Capture</span></button>':'')+
+      '</div>'+
+    '</div>'+
+    '<button class="row" id="camIssue"><span class="stripe bad"></span><div class="rmain"><b>'+(cam.issueId?'Edit camera issue':'Log an issue for this camera')+'</b><small>Every issue needs a photo</small></div><span class="chev">›</span></button>',
+    action:'<button class="btn ghost block" id="saveCam">Save</button><button class="btn primary block" id="saveNext">Save &amp; next camera</button>'
+  });
+},after:function(p){
+  bindChrome();
+  var inst=activeInst(); var id=decodeURIComponent(p[0]||'');
+  var cam=inst.cameras.find(function(c){return c.id===id;});
+  hydrateImages(APP); bindThumbs(APP);
+  $('#camloc').addEventListener('change',function(e){ $('#customWrap').hidden=(e.target.value!=='Other'); });
+  function pull(){
+    var num=$('#camnum').value.trim()||cam.number;
+    if(inst.cameras.some(function(c){return c.id!==cam.id&&c.number.toLowerCase()===num.toLowerCase();})){
+      toast('Camera number "'+num+'" is already used in this installation','bad'); return false;
+    }
+    var old={number:cam.number,location:cam.location,customLocation:cam.customLocation,status:cam.status,remarks:cam.remarks};
+    cam.number=num; cam.location=$('#camloc').value; cam.customLocation=$('#camcustom')?$('#camcustom').value.trim():'';
+    cam.status=$('#camstat').value; cam.remarks=$('#camrem').value.trim();
+    if(old.number!==num)audit('equipment',cam.id,'UPDATED',{oldValue:old.number,newValue:num});
+    cam.updatedAt=Date.now(); inst.updatedAt=Date.now();
+    if(old.number!==cam.number||old.location!==cam.location||old.customLocation!==cam.customLocation||old.status!==cam.status||old.remarks!==cam.remarks){
+      queuePatch(cam.id,{unit_number:cam.number,location:cam.location,custom_location:cam.customLocation,status:cam.status,remarks:cam.remarks},inst.id);
+    }
+    save(); return true;
+  }
+  var cc=$('#capCam');
+  if(cc)cc.addEventListener('click',function(){
+    if(!pull())return;
+    if(!cam.location){toast('Select a location before capturing','bad');return;}
+    addEvidence(inst,{type:'CCTV',unitNumber:cam.number,location:cam.location==='Other'?cam.customLocation:cam.location,equipmentId:cam.id,arrRef:function(){return cam.photoIds;}}).then(function(ok){ if(ok)render(); });
+  });
+  $('#camIssue').addEventListener('click',function(){ if(!pull())return; CPM.go('#/issue/new/cam/'+encodeURIComponent(cam.id)); });
+  $('#saveCam').addEventListener('click',function(){ if(pull()){toast('Camera saved');CPM.go('#/cctv');} });
+  $('#saveNext').addEventListener('click',async function(){
+    if(!pull())return;
+    var i=inst.cameras.indexOf(cam);
+    var nextIncomplete=null;
+    for(var k=i+1;k<inst.cameras.length;k++){ if(livePhotos(inst,inst.cameras[k].photoIds).length<state.config.minPhotos){nextIncomplete=inst.cameras[k];break;} }
+    if(!nextIncomplete&&inst.cameras.length<inst.expectedCctv){
+      var n=inst.cameras.length+1, num='CAM-'+pad(n);
+      while(inst.cameras.some(function(c){return c.number===num;})){n++;num='CAM-'+pad(n);}
+      var resp=await createEquipment(inst,{equipment_type:'CCTV',unit_number:num,status:'Installed'});
+      if(!resp)return;
+      nextIncomplete={id:resp.equipment_id,number:num,location:'',customLocation:'',status:'Installed',remarks:'',photoIds:[],issueId:null};
+      inst.cameras.push(nextIncomplete); tl(inst,'Camera '+num+' added'); save();
+    }
+    if(nextIncomplete){CPM.go('#/cam/'+encodeURIComponent(nextIncomplete.id));}
+    else {toast('All cameras have evidence');CPM.go('#/cctv');}
+  });
+}};
+
+function unitModule(kind){
+  return {html:function(){
+    var inst=activeInst(); if(!inst)return redir('#/home');
+    var map={monitor:{arr:'monitors',label:'Monitor',pfx:'MON',hint:'Recommended: physical unit, powered on, and displaying the CCTV live feed.'},
+             ups:{arr:'upsUnits',label:'UPS',pfx:'UPS',hint:'Establish physical presence, installation and surrounding context. Serial optional.'}};
+    var cfg=map[kind], arr=inst[cfg.arr];
+    return shell({title:cfg.label,sub:arr.length+' unit'+(arr.length===1?'':'s'),back:true,body:
+      '<div class="card stack"><div class="eyebrow">'+cfg.label+' evidence</div><p class="lede">'+cfg.hint+'</p>'+
+        '<button class="btn primary block" id="addUnit">Add '+cfg.label.toLowerCase()+' unit</button></div>'+
+      (arr.length?'':'<div class="banner info">No '+cfg.label.toLowerCase()+' units yet.</div>')+
+      arr.map(function(u){
+        var photos=livePhotos(inst,u.photoIds);
+        return '<div class="card stack">'+
+          '<div class="between"><h3 class="h-md">'+h(u.number)+'</h3><button class="btn sm danger" data-del="'+encodeURIComponent(u.id)+'">Remove</button></div>'+
+          '<div class="field"><label>Unit label</label><input data-num="'+encodeURIComponent(u.id)+'" value="'+h(u.number)+'"></div>'+
+          '<div class="field"><label>Serial number (optional)</label><input data-serial="'+encodeURIComponent(u.id)+'" value="'+h(u.serial||'')+'" placeholder="—"><span class="hint" data-dup="'+encodeURIComponent(u.id)+'"></span></div>'+
+          '<div class="between"><div class="eyebrow">Photos</div><span class="num">'+photos.length+' / '+state.config.maxPhotos+'</span></div>'+
+          '<div class="thumbs">'+photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
+            (photos.length<state.config.maxPhotos?'<button class="thumb add" data-cap="'+encodeURIComponent(u.id)+'">＋<span>Capture</span></button>':'')+'</div>'+
+        '</div>';
+      }).join(''),
+      action:'<button class="btn ghost block" data-go="#/dash">Back to dashboard</button>'
+    });
+  },after:function(){
+    bindChrome();
+    var inst=activeInst();
+    var map={monitor:{arr:'monitors',label:'Monitor',pfx:'MON'},ups:{arr:'upsUnits',label:'UPS',pfx:'UPS'}};
+    var cfg=map[kind], arr=inst[cfg.arr];
+    hydrateImages(APP); bindThumbs(APP);
+    $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});});
+    $('#addUnit').addEventListener('click',async function(){
+      var n=arr.length+1, num=cfg.pfx+'-'+pad(n);
+      var resp=await createEquipment(inst,{equipment_type:cfg.label,unit_number:num,status:'Installed'});
+      if(!resp)return;
+      var u={id:resp.equipment_id,number:num,serial:'',photoIds:[]};
+      arr.push(u); tl(inst,cfg.label+' '+num+' added');
+      if(inst.status==='Not Started')inst.status='In Progress';
+      save(); render();
+    });
+    $$('[data-del]').forEach(function(el){el.addEventListener('click',async function(){
+      var id=decodeURIComponent(el.getAttribute('data-del'));
+      if(!await confirmModal({title:'Remove unit?',body:'The server keeps this equipment record for audit history — it is only hidden here on this device.',confirmText:'Remove',danger:true}))return;
+      var u=arr.find(function(x){return x.id===id;});
+      audit('equipment',id,'DELETED',{oldValue:u.number}); inst[cfg.arr]=arr.filter(function(x){return x.id!==id;}); save(); render();
+    });});
+    $$('[data-num]').forEach(function(el){el.addEventListener('change',function(){
+      var u=arr.find(function(x){return x.id===decodeURIComponent(el.getAttribute('data-num'));}); u.number=el.value.trim()||u.number;
+      queuePatch(u.id,{unit_number:u.number},inst.id); save();
+    });});
+    var serialTimers={};
+    $$('[data-serial]').forEach(function(el){el.addEventListener('input',function(){
+      var id=decodeURIComponent(el.getAttribute('data-serial'));
+      var u=arr.find(function(x){return x.id===id;}); u.serial=el.value.trim(); save();
+      queuePatch(u.id,{serial_number:u.serial},inst.id);
+      clearTimeout(serialTimers[id]);
+      serialTimers[id]=setTimeout(async function(){
+        var hintEl=$('[data-dup="'+encodeURIComponent(id)+'"]');
+        var d=await dupSerial(u.serial);
+        if(hintEl){ if(d){hintEl.textContent='⚠ Duplicate — serial already recorded against '+d.centerCode+' ('+d.type+')';hintEl.style.color='var(--bad)';} else {hintEl.textContent='';} }
+      },400);
+    });});
+    $$('[data-cap]').forEach(function(el){el.addEventListener('click',function(){
+      var u=arr.find(function(x){return x.id===decodeURIComponent(el.getAttribute('data-cap'));});
+      addEvidence(inst,{type:cfg.label,unitNumber:u.number,location:null,equipmentId:u.id,arrRef:function(){return u.photoIds;}}).then(function(ok){ if(ok)render(); });
+    });});
+  }};
+}
+VIEWS['monitor']=unitModule('monitor');
+VIEWS['ups']=unitModule('ups');
+
+VIEWS['internet']={html:function(){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var r=inst.routers[0]; var photos=livePhotos(inst,r.photoIds);
+  return shell({title:'Internet router',back:true,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">Required</div>'+
+      '<div class="between"><div class="eyebrow" style="letter-spacing:.02em;text-transform:none;font-size:13px;color:var(--ink)">Router photograph</div><span class="num">'+photos.length+' / '+state.config.maxPhotos+'</span></div>'+
+      '<div class="thumbs">'+photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
+        (photos.length<state.config.maxPhotos?'<button class="thumb add" id="capRtr">＋<span>Capture</span></button>':'')+'</div>'+
+      '<div class="field"><label>Internet working?</label>'+
+        '<div class="seg"><button id="wkYes" aria-pressed="'+(r.working===true)+'">Yes</button><button id="wkNo" aria-pressed="'+(r.working===false)+'">No</button></div></div>'+
+      '<div class="banner info">"Router photo captured" and "internet functionality confirmed" are recorded as two separate facts.</div>'+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="eyebrow">Optional</div>'+
+      '<div class="field"><label for="spd">Speed test result</label><input id="spd" value="'+h(r.speedTest||'')+'" placeholder="e.g. 48 Mbps down / 12 up"></div>'+
+      '<div class="field"><label for="rserial">Router serial number</label><input id="rserial" value="'+h(r.serial||'')+'" placeholder="—"><span class="hint" id="rdup"></span></div>'+
+    '</div>',
+    action:'<button class="btn primary block" data-go="#/dash">Save &amp; back</button>'
+  });
+},after:function(){
+  bindChrome();
+  var inst=activeInst(); var r=inst.routers[0];
+  hydrateImages(APP); bindThumbs(APP);
+  $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){saveRtr();CPM.go(el.getAttribute('data-go'));});});
+  function saveRtr(){
+    var speed=$('#spd').value.trim(), serial=$('#rserial').value.trim();
+    var changed=(speed!==r.speedTest)||(serial!==r.serial);
+    r.speedTest=speed; r.serial=serial; save();
+    if(changed)queuePatch(r.id,{speed_test:r.speedTest,serial_number:r.serial},inst.id);
+  }
+  var cr=$('#capRtr');
+  if(cr)cr.addEventListener('click',function(){ addEvidence(inst,{type:'Router',unitNumber:r.number,location:null,equipmentId:r.id,arrRef:function(){return r.photoIds;}}).then(function(ok){ if(ok)render(); }); });
+  $('#wkYes').addEventListener('click',function(){ r.working=true; audit('equipment',r.id,'UPDATED',{newValue:'internet working=yes'}); tl(inst,'Internet reported working'); queuePatch(r.id,{internet_working:true},inst.id); save(); render(); });
+  $('#wkNo').addEventListener('click',function(){ r.working=false; audit('equipment',r.id,'UPDATED',{newValue:'internet working=no'}); tl(inst,'Internet reported not working'); queuePatch(r.id,{internet_working:false},inst.id); save(); render(); });
+  var rserialTimer;
+  $('#rserial').addEventListener('input',function(){
+    var val=$('#rserial').value.trim();
+    clearTimeout(rserialTimer);
+    rserialTimer=setTimeout(async function(){
+      var d=await dupSerial(val);
+      var el=$('#rdup');
+      if(el){ if(d){el.textContent='⚠ Duplicate — already recorded against '+d.centerCode+' ('+d.type+')';el.style.color='var(--bad)';}else{el.textContent='';} }
+    },400);
+  });
+}};
+
+VIEWS['issue']={html:function(p){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var ref=(p[1]==='cam'&&p[2])?decodeURIComponent(p[2]):null;
+  var cam=ref?inst.cameras.find(function(c){return c.id===ref;}):null;
+  var existing=cam&&cam.issueId?inst.issues.find(function(i){return i.id===cam.issueId;}):null;
+  var cfg=state.config;
+  return shell({title:existing?'Edit issue':'Report issue',sub:cam?cam.number:'center level',back:true,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">'+(cam?'Equipment issue · '+h(cam.number):'Center-level issue')+'</div>'+
+      '<div class="field"><label for="isev">Severity</label><select id="isev">'+cfg.issueSeverities.map(function(s){return '<option'+(existing&&existing.severity===s?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><label for="icat">Category / reason</label><select id="icat">'+(cam?cfg.cameraIssueReasons:cfg.issueCategories).map(function(s){return '<option'+(existing&&existing.category===s?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><label for="idesc">Description</label><textarea id="idesc" placeholder="What is the problem?">'+h(existing?existing.description:'')+'</textarea></div>'+
+      '<div class="field"><label>Evidence photo (mandatory)</label>'+
+        '<div class="thumbs" id="issThumbs">'+(existing&&existing.photoId&&!isDeleted(inst,existing.photoId)?thumbHTML(inst,existing.photoId):'')+
+        '<button class="thumb add" id="capIssue">＋<span>Capture</span></button></div></div>'+
+    '</div>',
+    action:'<button class="btn primary block" id="saveIssue">Save issue</button>'
+  });
+},after:function(p){
+  bindChrome();
+  var inst=activeInst();
+  var ref=(p[1]==='cam'&&p[2])?decodeURIComponent(p[2]):null;
+  var cam=ref?inst.cameras.find(function(c){return c.id===ref;}):null;
+  var existing=cam&&cam.issueId?inst.issues.find(function(i){return i.id===cam.issueId;}):null;
+  var pendingPhoto=existing?existing.photoId:null;
+  hydrateImages(APP); bindThumbs(APP);
+  $('#capIssue').addEventListener('click',function(){
+    addEvidence(inst,{type:'Issue',unitNumber:cam?cam.number:'CENTER',location:cam?cam.location:null,equipmentId:cam?cam.id:null,arrRef:function(){return {push:function(id){pendingPhoto=id;}};}}).then(function(ok){
+      if(ok){
+        // find newest issue-type evidence id
+        var ids=Object.keys(inst.evidence).filter(function(k){return inst.evidence[k].equipmentType==='Issue'&&!inst.evidence[k].deleted;});
+        pendingPhoto=ids.sort(function(a,b){return inst.evidence[b].createdAt-inst.evidence[a].createdAt;})[0];
+        $('#issThumbs').innerHTML=thumbHTML(inst,pendingPhoto)+'<button class="thumb add" id="capIssue2">＋<span>Retake</span></button>';
+        hydrateImages(APP); bindThumbs(APP);
+        $('#capIssue2').addEventListener('click',function(){ $('#capIssue').click(); });
+      }
+    });
+  });
+  $('#saveIssue').addEventListener('click',function(){
+    var desc=$('#idesc').value.trim();
+    if(!desc){toast('Add a description','bad');return;}
+    if(!pendingPhoto){toast('Every issue needs a photo','bad');return;}
+    if(existing){
+      existing.severity=$('#isev').value; existing.category=$('#icat').value; existing.description=desc; existing.photoId=pendingPhoto; existing.updatedAt=Date.now();
+      audit('issue',existing.id,'UPDATED',{});
+      if(existing.serverIssueId){
+        state.syncQueue.push({id:uid('SYQ'),type:'issuepatch',refId:existing.serverIssueId,instId:inst.id,status:'Pending',attempts:0,nextRetryAt:0,fields:{severity:existing.severity,category:existing.category,description:existing.description},queuedAt:Date.now()});
+      }else{
+        queueSync('issue',existing.id,inst.id);
+      }
+    }else{
+      var iss={id:uid('ISS'),installationId:inst.id,equipmentId:cam?cam.id:null,scope:cam?'equipment':'center',
+        severity:$('#isev').value,category:$('#icat').value,description:desc,photoId:pendingPhoto,status:'Open',
+        createdBy:inst.technicianId,createdAt:Date.now(),updatedAt:Date.now()};
+      inst.issues.push(iss);
+      if(cam)cam.issueId=iss.id;
+      audit('issue',iss.id,'CREATED',{newValue:iss.severity+' / '+iss.category});
+      tl(inst,(cam?cam.number+' — ':'Center — ')+iss.category+' ('+iss.severity+')');
+      queueSync('issue',iss.id,inst.id);
+    }
+    save(); toast('Issue saved'); CPM.back();
+  });
+}};
+
+VIEWS['review']={html:function(){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var comp=compliance(inst);
+  var cwe=camsWithEvidence(inst);
+  var installed=inst.cameras.filter(function(c){return c.status==='Installed';}).length;
+  var missing=Math.max(0,inst.expectedCctv-cwe);
+  var additional=Math.max(0,inst.cameras.length-inst.expectedCctv);
+  var sev={Critical:0,High:0,Medium:0,Low:0};
+  inst.issues.forEach(function(i){sev[i.severity]=(sev[i.severity]||0)+1;});
+  var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
+  function sec(t,rows){ return '<div class="card stack"><div class="eyebrow">'+h(t)+'</div><div class="readout">'+rows+'</div></div>'; }
+  function kv(k,v){ return '<div class="kv"><span>'+h(k)+'</span><b>'+v+'</b></div>'; }
+  return shell({title:'Final review',sub:inst.id,back:true,body:
+    '<div class="card stack" style="align-items:center">'+
+      '<div class="ring" style="--v:'+comp.percent+'"><span class="rv">'+comp.percent+'%</span><span class="rl">compliance</span></div>'+
+      '<div class="between" style="width:100%">'+statusBadge(inst.status)+gpsBadge(g)+'</div>'+
+    '</div>'+
+    sec('Center',kv('code',h(inst.centerCode))+kv('name',h(inst.centerName))+kv('address','<span style="max-width:60%;text-align:right;display:inline-block">'+h(inst.address)+'</span>')+kv('gps',h(g.status)+(g.distance!=null?' · '+Math.round(g.distance)+'m':''))) +
+    sec('Technician',kv('identity',h(inst.technicianName)+' · '+h(inst.technicianId))+kv('start selfie',inst.startSelfieId?'✓ captured':'✗ missing')+kv('submission selfie',inst.submitSelfieId?'✓ captured':'— pending')) +
+    sec('CCTV',kv('expected',inst.expectedCctv)+kv('with evidence',cwe)+kv('marked installed',installed)+kv('missing',missing)+kv('additional','+'+additional)) +
+    sec('Monitor',kv('units',inst.monitors.length)+kv('evidence',inst.monitors.reduce(function(a,u){return a+livePhotos(inst,u.photoIds).length;},0))) +
+    sec('UPS',kv('units',inst.upsUnits.length)+kv('evidence',inst.upsUnits.reduce(function(a,u){return a+livePhotos(inst,u.photoIds).length;},0))) +
+    sec('Internet',kv('router evidence',livePhotos(inst,inst.routers[0].photoIds).length)+kv('working',inst.routers[0].working==null?'not set':(inst.routers[0].working?'yes':'no'))+kv('speed test',h(inst.routers[0].speedTest||'—'))) +
+    sec('Issues',kv('critical',sev.Critical)+kv('high',sev.High)+kv('medium',sev.Medium)+kv('low',sev.Low)) +
+    '<label style="display:flex;gap:10px;align-items:flex-start;font-size:13px"><input type="checkbox" id="ackbox" style="width:auto;margin-top:3px"> I have reviewed the installation record above and it is accurate.</label>',
+    action:'<button class="btn primary block" id="toSubmit" disabled>Proceed to submit</button>'
+  });
+},after:function(){
+  bindChrome();
+  var inst=activeInst();
+  $('#ackbox').addEventListener('change',function(e){ inst.ack=e.target.checked; $('#toSubmit').disabled=!e.target.checked; save(); });
+  $('#toSubmit').addEventListener('click',function(){ CPM.go('#/submit'); });
+}};
+
+VIEWS['submit']={html:function(){
+  var inst=activeInst(); if(!inst)return redir('#/home');
+  var comp=compliance(inst);
+  return shell({title:'Submit installation',sub:inst.id,back:true,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">Submission</div>'+
+      '<h1 class="h-lg">'+h(inst.centerName)+'</h1>'+
+      '<div class="readout"><div class="kv"><span>installation id</span><b>'+h(inst.id)+'</b></div>'+
+        '<div class="kv"><span>evidence compliance</span><b>'+comp.percent+'%</b></div>'+
+        '<div class="kv"><span>connectivity</span><b>'+(online()?'online — will upload now':'offline — secure local submission')+'</b></div></div>'+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="eyebrow">Final selfie</div>'+
+      (inst.submitSelfieId?'<div class="thumbs">'+thumbHTML(inst,inst.submitSelfieId)+'</div><div class="banner good">Submission selfie captured.</div>':'<div class="banner warn">Required before submission.</div>')+
+      '<button class="btn ghost block" id="finalSelfie">'+(inst.submitSelfieId?'Retake':'Capture final selfie')+'</button>'+
+    '</div>'+
+    '<div class="field"><label for="finalStatus">Installation status</label><select id="finalStatus">'+
+      ['Not Started','In Progress','Partially Completed','Completed'].map(function(s){return '<option'+(s===inst.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>',
+    action:'<button class="btn primary block" id="doSubmit">Submit</button>'
+  });
+},after:function(){
+  bindChrome();
+  var inst=activeInst();
+  hydrateImages(APP); bindThumbs(APP);
+  $('#finalSelfie').addEventListener('click',function(){ captureSelfie(inst,'submit').then(function(ok){ if(ok)render(); }); });
+  $('#finalStatus').addEventListener('change',function(e){
+    var old=inst.status; inst.status=e.target.value;
+    audit('installation',inst.id,'STATUS_CHANGED',{oldValue:old,newValue:inst.status}); queueInstStatus(inst); save();
+  });
+  $('#doSubmit').addEventListener('click',async function(){
+    if(!inst.submitSelfieId){toast('Capture the final selfie first','bad');return;}
+    if(!inst.ack){toast('Acknowledge the review first','bad');CPM.go('#/review');return;}
+    var comp=compliance(inst), cwe=camsWithEvidence(inst);
+    if(inst.status==='Completed'&&(comp.percent<100||cwe<inst.expectedCctv)){
+      var go=await confirmModal({title:'Evidence incomplete',
+        body:'Expected CCTV: <b>'+inst.expectedCctv+'</b><br>Evidence captured: <b>'+cwe+'</b><br>Missing evidence: <b>'+Math.max(0,inst.expectedCctv-cwe)+' cameras</b><br>Overall compliance: <b>'+comp.percent+'%</b><br><br>You marked this installation <b>Completed</b>. Continue?',
+        confirmText:'Submit anyway',danger:true});
+      if(!go)return;
+      audit('installation',inst.id,'STATUS_CHANGED',{reason:'submitted Completed with '+comp.percent+'% compliance',newValue:'Completed'});
+    }
+    inst.submitted=true; inst.submittedAt=Date.now(); inst.evidenceCompliance=comp.percent;
+    tl(inst,'Installation submitted');
+    audit('submission',inst.id,'SUBMITTED',{newValue:inst.status+' · '+comp.percent+'%'});
+    Object.keys(inst.evidence).forEach(function(k){ if(!inst.evidence[k].deleted){ inst.evidence[k].syncStatus=inst.evidence[k].syncStatus==='Synced'?'Synced':'Pending'; queueSync('evidence',k,inst.id); } });
+    queueSync('submission',inst.id,inst.id);
+    var doneId=inst.id;
+    state.activeId=null; save();
+    if(online()){ toast('Submitted — uploading evidence','good'); syncTick(); }
+    else { toast('Saved locally — will sync automatically when online','good'); }
+    CPM.go('#/sync?i='+doneId);
+  });
+}};
+
+VIEWS['sync']={html:function(){
+  var q=state.syncQueue;
+  var by={Pending:0,Uploading:0,Synced:0,Failed:0};
+  q.forEach(function(x){by[x.status]=(by[x.status]||0)+1;});
+  return shell({title:'Sync Center',back:true,body:
+    '<div class="card stack">'+
+      '<div class="between"><div class="eyebrow">Synchronization</div>'+(online()?'<span class="badge b-good"><span class="bd"></span>Online</span>':'<span class="badge b-warn"><span class="bd"></span>Offline</span>')+'</div>'+
+      '<div class="grid2">'+
+        '<div class="tile"><div class="k num">'+by.Synced+' / '+q.length+'</div><div class="l">Synced</div></div>'+
+        '<div class="tile"><div class="k num">'+(by.Pending+by.Uploading)+'</div><div class="l">In queue</div></div>'+
+        '<div class="tile"><div class="k num">'+by.Uploading+'</div><div class="l">Uploading</div></div>'+
+        '<div class="tile"><div class="k num">'+by.Failed+'</div><div class="l">Failed</div></div>'+
+      '</div>'+
+      '<p class="lede">The queue persists across restarts. Failed items retry automatically with backoff. Retrying never creates a duplicate — each item carries an idempotency key.</p>'+
+      '<div style="display:flex;gap:10px"><button class="btn ghost block" id="forceOff">'+(state.config.forceOffline?'Go online':'Simulate offline')+'</button>'+
+      '<button class="btn primary block" id="syncNow"'+(online()?'':' disabled')+'>Sync now</button></div>'+
+    '</div>'+
+    (q.length?q.slice().reverse().slice(0,60).map(function(x){
+      var stripe=x.status==='Synced'?'good':x.status==='Failed'?'bad':x.status==='Uploading'?'info':'mute';
+      return '<div class="row" style="cursor:default"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(x.type)+' · '+h(x.refId.slice(0,14))+'</b><small>attempts '+(x.attempts||0)+(x.status==='Failed'?' · retry queued':'')+'</small></div>'+syncPill(x.status)+'</div>';
+    }).join(''):'<div class="banner info">Nothing queued yet.</div>'),
+    action:'<button class="btn primary block" data-go="#/home">Done</button>'
+  });
+},after:function(){
+  bindChrome();
+  $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});});
+  $('#forceOff').addEventListener('click',function(){ state.config.forceOffline=!state.config.forceOffline; save(); updateStrip(); render(); if(online())syncTick(); });
+  $('#syncNow').addEventListener('click',function(){ toast('Sync started'); syncPump(6); });
+}};
+
+VIEWS['history']={html:function(){
+  var arr=Object.values(state.installations).sort(function(a,b){return (b.submittedAt||b.createdAt)-(a.submittedAt||a.createdAt);});
+  return shell({title:'Installation History',back:true,body:
+    arr.length?arr.map(function(it){
+      var comp=it.evidenceCompliance!=null?it.evidenceCompliance:compliance(it).percent;
+      var q=state.syncQueue.filter(function(x){return x.instId===it.id;});
+      var synced=q.length&&q.every(function(x){return x.status==='Synced';});
+      return '<button class="row" data-go="#/rec/'+it.id+'"><span class="stripe '+(it.submitted?(synced?'good':'warn'):'info')+'"></span>'+
+        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' · '+fmtDate(it.submittedAt||it.createdAt)+'</small>'+
+        '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+statusBadge(it.status)+'<span class="badge b-mute"><span class="bd"></span>'+comp+'%</span>'+
+        (it.issues.length?'<span class="badge b-warn"><span class="bd"></span>'+it.issues.length+' issue'+(it.issues.length>1?'s':'')+'</span>':'')+
+        (it.submitted?(synced?'<span class="badge b-good"><span class="bd"></span>synced</span>':'<span class="badge b-warn"><span class="bd"></span>sync pending</span>'):'<span class="badge b-info"><span class="bd"></span>draft</span>')+
+        '</div></div><span class="chev">›</span></button>';
+    }).join(''):'<div class="banner info">No installations yet.</div>'
+  });
+},after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['rec']={html:function(p){
+  var it=state.installations[p[0]]; if(!it)return shell({title:'Record',back:true,body:'<div class="banner bad">Not found.</div>'});
+  var comp=it.evidenceCompliance!=null?it.evidenceCompliance:compliance(it).percent;
+  var evAll=Object.keys(it.evidence).filter(function(k){return !it.evidence[k].deleted;});
+  var byType={};
+  evAll.forEach(function(k){var t=it.evidence[k].equipmentType;(byType[t]=byType[t]||[]).push(k);});
+  var isTech=state.session.role==='Technician';
+  return shell({title:it.centerName,sub:it.id,back:true,body:
+    '<div class="card stack">'+
+      '<div class="between">'+statusBadge(it.status)+'<span class="badge b-mute"><span class="bd"></span>'+comp+'% evidence</span></div>'+
+      '<div class="readout">'+
+        '<div class="kv"><span>project</span><b>'+h(it.projectName)+'</b></div>'+
+        '<div class="kv"><span>center</span><b>'+h(it.centerCode)+'</b></div>'+
+        '<div class="kv"><span>technician</span><b>'+h(it.technicianName)+' · '+h(it.technicianId)+'</b></div>'+
+        '<div class="kv"><span>started</span><b>'+fmtDT(it.startedAt)+'</b></div>'+
+        '<div class="kv"><span>submitted</span><b>'+(it.submittedAt?fmtDT(it.submittedAt):'—')+'</b></div>'+
+        '<div class="kv"><span>gps at start</span><b>'+h(it.gps.status)+(it.gps.distance!=null?' · '+Math.round(it.gps.distance)+'m':'')+'</b></div>'+
+        '<div class="kv"><span>server ack</span><b>'+(it.serverAck?'received':it.submitted?'pending':'—')+'</b></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+        '<button class="btn sm ghost" data-go="#/timeline/'+it.id+'">Timeline</button>'+
+        '<button class="btn sm ghost" data-go="#/audit?i='+it.id+'">Audit</button>'+
+        (isTech&&!it.submitted&&it.id===state.activeId?'<button class="btn sm primary" data-go="#/dash">Continue</button>':'')+
+      '</div>'+
+    '</div>'+
+    (it.startSelfieId||it.submitSelfieId?'<div class="card stack"><div class="eyebrow">Selfies</div><div class="thumbs">'+
+      (it.startSelfieId&&!isDeleted(it,it.startSelfieId)?thumbHTML(it,it.startSelfieId):'')+
+      (it.submitSelfieId&&!isDeleted(it,it.submitSelfieId)?thumbHTML(it,it.submitSelfieId):'')+'</div></div>':'')+
+    Object.keys(byType).filter(function(t){return t!=='Selfie';}).map(function(t){
+      return '<div class="card stack"><div class="between"><div class="eyebrow">'+h(t)+'</div><span class="num">'+byType[t].length+'</span></div>'+
+        '<div class="thumbs">'+byType[t].map(function(k){return thumbHTML(it,k);}).join('')+'</div></div>';
+    }).join('')+
+    (it.issues.length?'<div class="card stack"><div class="eyebrow">Issues</div>'+it.issues.map(function(i){
+      return '<div class="row" style="cursor:default"><span class="stripe '+(i.severity==='Critical'?'bad':'warn')+'"></span><div class="rmain"><b>'+h(i.category)+'</b><small>'+h(i.description)+'</small></div>'+sevBadge(i.severity)+'</div>';
+    }).join('')+'</div>':'')
+  });
+},after:function(){ bindChrome(); hydrateImages(APP); bindThumbs(APP); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['timeline']={html:function(p){
+  var it=state.installations[p[0]]; if(!it)return shell({title:'Timeline',back:true,body:'<div class="banner bad">Not found.</div>'});
+  return shell({title:'Timeline',sub:it.id,back:true,body:
+    '<div class="card"><div class="timeline">'+
+      it.timeline.map(function(t){ return '<div class="tl"><div class="tt">'+fmtTime(t.ts)+'</div><div class="tc">'+h(t.label)+'</div></div>'; }).join('')+
+    '</div></div>'
+  });
+},after:function(){ bindChrome(); }};
+
+VIEWS['audit']={html:function(){
+  var q=new URLSearchParams((location.hash.split('?')[1]||''));
+  var filt=q.get('i');
+  var rows=state.audit.slice().reverse();
+  if(filt){
+    var it=state.installations[filt], ids={}; ids[filt]=1;
+    if(it){
+      Object.keys(it.evidence).forEach(function(k){ids[k]=1;});
+      [].concat(it.cameras,it.monitors,it.upsUnits,it.routers,it.issues).forEach(function(x){ids[x.id]=1;});
+    }
+    rows=rows.filter(function(r){return ids[r.entityId];});
+  }
+  return shell({title:'Audit Trail',sub:filt||'append-only',back:true,body:
+    '<div class="banner info">Append-only. Deletions and replacements keep their history here even after the image is gone.</div>'+
+    rows.slice(0,200).map(function(r){
+      return '<div class="row" style="cursor:default"><span class="stripe '+(r.action==='DELETED'||r.action==='FAILED'?'bad':r.action==='SYNCED'||r.action==='SUBMITTED'?'good':'mute')+'"></span>'+
+        '<div class="rmain"><b>'+h(r.action)+' · '+h(r.entityType)+'</b><small class="mono">'+h(r.entityId.slice(0,20))+' · '+fmtDT(r.ts)+'</small>'+
+        (r.reason?'<small style="display:block">reason: '+h(r.reason)+'</small>':'')+
+        (r.oldValue||r.newValue?'<small style="display:block">'+h(r.oldValue||'∅')+' → '+h(r.newValue||'∅')+'</small>':'')+
+        '</div></div>';
+    }).join('')
+  });
+},after:function(){ bindChrome(); }};
+
+VIEWS['stakeholder']={html:function(){
+  var s=state.session;
+  var arr=Object.values(state.installations).filter(function(i){return i.submitted;}).sort(function(a,b){return b.submittedAt-a.submittedAt;});
+  return shell({title:'Stakeholder View',sub:s.role+' · read-only',body:
+    '<div class="card stack"><div class="eyebrow">'+h(s.role)+' access</div>'+
+      '<p class="lede">Submitted installation evidence, as the CPM Portal would consume it. No editing from this role.</p></div>'+
+    (arr.length?arr.map(function(it){
+      var comp=it.evidenceCompliance!=null?it.evidenceCompliance:compliance(it).percent;
+      return '<button class="row" data-go="#/rec/'+it.id+'"><span class="stripe '+(it.serverAck?'good':'warn')+'"></span>'+
+        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' · '+h(it.technicianId)+' · '+fmtDate(it.submittedAt)+'</small>'+
+        '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+statusBadge(it.status)+'<span class="badge b-mute"><span class="bd"></span>'+comp+'%</span>'+
+        '<span class="badge '+(it.gps.status==='Verified'?'b-good':'b-warn')+'"><span class="bd"></span>GPS '+h(it.gps.status)+'</span></div></div><span class="chev">›</span></button>';
+    }).join(''):'<div class="banner info">No submitted installations yet. Sign in as a Technician to create one.</div>')
+  });
+},after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['settings']={html:function(){
+  var c=state.config;
+  function num(id,label,val,hint){ return '<div class="field"><label for="'+id+'">'+h(label)+'</label><input id="'+id+'" class="mono" inputmode="decimal" value="'+val+'">'+(hint?'<span class="hint">'+h(hint)+'</span>':'')+'</div>'; }
+  function tog(id,label,on,hint){ return '<div class="field"><label style="display:flex;justify-content:space-between;align-items:center">'+h(label)+'<input type="checkbox" id="'+id+'" '+(on?'checked':'')+' style="width:auto"></label>'+(hint?'<span class="hint">'+h(hint)+'</span>':'')+'</div>'; }
+  return shell({title:'Settings & Config',back:true,body:
+    '<div class="card stack"><div class="eyebrow">Field behaviour (configurable, not hard-coded)</div>'+
+      num('cfGeo','Geofence radius (m)',c.geofenceRadius)+
+      num('cfAcc','Poor-accuracy threshold (m)',c.gpsPoorAccuracy)+
+      num('cfMax','Max photos per equipment',c.maxPhotos)+
+      num('cfMin','Min photos for complete CCTV',c.minPhotos)+
+      num('cfQ','JPEG quality (0–1)',c.jpegQuality)+
+      num('cfSide','Max image long-edge (px)',c.maxImageSide)+
+      num('cfTo','Session timeout (min)',c.sessionTimeoutMin)+
+      num('cfFail','Simulated sync failure rate (0–1)',c.syncFailRate)+
+    '</div>'+
+    '<div class="card stack"><div class="eyebrow">Testing aids</div>'+
+      tog('cfTest','GPS test mode — treat as at center',c.testGpsAtCenter,'Use this to walk the whole flow on a desktop with no GPS.')+
+      tog('cfMock','Simulate mock-location / spoofing',c.simulateMock,'Forces GPS status to "Suspicious".')+
+      tog('cfOff','Force offline',c.forceOffline,'Blocks sync so you can see offline-first behaviour.')+
+      '<div class="field"><label for="cfTheme">Theme</label><select id="cfTheme"><option value="">System</option><option value="light"'+(state.ui.theme==='light'?' selected':'')+'>Light</option><option value="dark"'+(state.ui.theme==='dark'?' selected':'')+'>Dark</option></select></div>'+
+    '</div>'+
+    '<div class="card stack"><div class="eyebrow">Danger zone</div>'+
+      '<button class="btn danger block" id="wipe">Reset all demo data</button>'+
+      '<span class="hint">Clears installations, evidence, queue and audit log on this device.</span></div>',
+    action:'<button class="btn primary block" id="saveCfg">Save settings</button>'
+  });
+},after:function(){
+  bindChrome();
+  $('#saveCfg').addEventListener('click',function(){
+    var c=state.config;
+    c.geofenceRadius=+$('#cfGeo').value||50; c.gpsPoorAccuracy=+$('#cfAcc').value||30;
+    c.maxPhotos=clamp(+$('#cfMax').value||5,1,10); c.minPhotos=clamp(+$('#cfMin').value||1,1,c.maxPhotos);
+    c.jpegQuality=clamp(+$('#cfQ').value||0.82,0.3,1); c.maxImageSide=clamp(+$('#cfSide').value||1600,600,4000);
+    c.sessionTimeoutMin=+$('#cfTo').value||60; c.syncFailRate=clamp(+$('#cfFail').value||0,0,0.9);
+    c.testGpsAtCenter=$('#cfTest').checked; c.simulateMock=$('#cfMock').checked; c.forceOffline=$('#cfOff').checked;
+    if(c.simulateMock)GPS.suspicious=false;
+    state.ui.theme=$('#cfTheme').value||null; applyTheme();
+    save(); toast('Settings saved'); updateStrip();
+  });
+  $('#wipe').addEventListener('click',async function(){
+    if(!await confirmModal({title:'Reset demo data?',body:'Everything on this device is cleared. You will be signed out.',confirmText:'Reset',danger:true}))return;
+    try{Object.keys(URLCACHE).forEach(function(k){URL.revokeObjectURL(URLCACHE[k]);});}catch(e){}
+    try{indexedDB.deleteDatabase(IDB_NAME);}catch(e){}
+    localStorage.removeItem(LSKEY); state=freshState(); save(); CPM.go('#/login'); toast('Demo data reset');
+  });
+}};
+
+/* ============================== router ============================== */
+function redir(hash){ setTimeout(function(){CPM.go(hash);},0); return '<div class="scroll"><div class="skel" style="height:120px"></div></div>'; }
+var TECH_ONLY=['home','projects','project','center','selfie','dash','cctv','cam','monitor','ups','internet','issue','review','submit'];
+function render(){
+  var raw=location.hash||'#/';
+  var path=raw.replace(/^#\/?/,'').split('?')[0];
+  var parts=path.split('/').filter(function(x){return x!=='';});
+  var route=parts[0]||'';
+  // auth guard
+  if(!state.session){
+    if(route!=='login'){ location.replace('#/login'); return; }
+  } else {
+    if(state.config.sessionTimeoutMin&&Date.now()-state.session.loginAt>state.config.sessionTimeoutMin*60000){
+      audit('auth',state.session.userId,'SESSION_TIMEOUT',{}); state.session=null; save();
+      toast('Session expired — sign in again','bad'); location.replace('#/login'); return;
+    }
+    if(route===''||route==='login'){ location.replace(state.session.role==='Technician'?'#/home':'#/stakeholder'); return; }
+    if(state.session.role!=='Technician'&&TECH_ONLY.indexOf(route)>=0){ location.replace('#/stakeholder'); return; }
+  }
+  var view=VIEWS[route]||VIEWS[state.session?(state.session.role==='Technician'?'home':'stakeholder'):'login'];
+  try{
+    APP.innerHTML=view.html(parts.slice(1));
+    if(view.after&&APP.querySelector('.appbar'))view.after(parts.slice(1));
+  }catch(e){
+    APP.innerHTML='<div class="scroll"><div class="banner bad"><b>Screen error.</b> '+h(e.message)+'</div><button class="btn block" onclick="location.hash=\'#/home\'">Go home</button></div>';
+    console.error(e);
+  }
+  hydrateImages(APP); bindThumbs(APP);
+  var sc=$('.scroll'); if(sc)sc.scrollTop=0;
+}
+function softRefresh(){
+  // re-render current screen without scroll reset, used by sync/gps updates
+  var y=($('.scroll')||{}).scrollTop||0;
+  render();
+  var sc=$('.scroll'); if(sc)sc.scrollTop=y;
+}
+function maybeRefresh(){
+  // only re-render screens that display live sync/queue state — never blow away a form in progress
+  var r=(location.hash||'').replace(/^#\/?/,'').split(/[\/?]/)[0];
+  if(['sync','home','dash','history','rec',''].indexOf(r)>=0)softRefresh();
+  else updateStrip();
+}
+var CPM={
+  go:function(hash){ if(location.hash===hash){render();}else{location.hash=hash;} },
+  back:function(){ if(history.length>1){history.back();} else {CPM.go('#/home');} },
+  menu:openMenu
+};
+window.CPM=CPM;
+window.addEventListener('hashchange',render);
+
+// Native Android back button (Capacitor). Without this, Android's default handling
+// doesn't reliably map to a hash-router SPA and just exits the app instead of
+// navigating back within it. No-op outside the native wrapper (window.Capacitor
+// is only defined there), so this is harmless in a plain browser.
+(function(){
+  var CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+  if(!CapApp)return;
+  var ROOT_ROUTES={'home':1,'stakeholder':1,'login':1,'':1};
+  CapApp.addListener('backButton',function(){
+    if(MODAL&&MODAL.innerHTML){ closeSheet(); return; } // dismiss an open sheet/modal first
+    var route=(location.hash||'').replace(/^#\/?/,'').split(/[\/?]/)[0];
+    if(!state.session||ROOT_ROUTES[route]){ CapApp.minimizeApp(); }
+    else { CPM.back(); }
+  });
+})();
+
+/* ============================== theme + lifecycle ============================== */
+function applyTheme(){
+  if(state.ui&&state.ui.theme){ document.documentElement.setAttribute('data-theme',state.ui.theme); }
+  else { document.documentElement.removeAttribute('data-theme'); }
+}
+async function checkDevice(){
+  try{
+    if(navigator.storage&&navigator.storage.estimate){
+      var est=await navigator.storage.estimate();
+      var freeMB=(est.quota-est.usage)/1048576;
+      if(freeMB<200){ toast('Device storage low (~'+Math.round(freeMB)+' MB). Free space before capturing more.','bad'); }
+    }
+  }catch(e){}
+  try{
+    if(navigator.getBattery){
+      var b=await navigator.getBattery();
+      if(b.level<0.15&&!b.charging){ toast('Battery critically low — active work is saved as you go.','bad'); }
+    }
+  }catch(e){}
+}
+function syncPump(n){ var i=0; (function step(){ if(i++>=n)return; syncTick().then(function(){ setTimeout(step,300); }); })(); }
+
+/* ============================== boot ============================== */
+load();
+applyTheme();
+if(state.session&&state.session.role==='Technician'&&state.activeId&&state.installations[state.activeId]&&!state.installations[state.activeId].submitted){
+  // crash recovery — keep activeId, land on home which shows the resume card
+}
+startGps();
+render();
+checkDevice();
+if(state.session&&online())loadCatalog().then(function(){ if((location.hash||'').indexOf('projects')>=0||(location.hash||'').indexOf('project/')>=0)softRefresh(); });
+setInterval(function(){ syncTick(); },3600);
+setInterval(function(){ updateStrip(); },5000);
+window.addEventListener('online',function(){ updateStrip(); syncPump(4); softRefreshIfSync(); });
+window.addEventListener('offline',function(){ updateStrip(); softRefreshIfSync(); });
+function softRefreshIfSync(){ var r=(location.hash||'').indexOf('sync')>=0; if(r)softRefresh(); }
+document.addEventListener('visibilitychange',function(){ if(!document.hidden){ updateStrip(); syncTick(); } });
+
+})();
+</script>
+</body>
+</html>

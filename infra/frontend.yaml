@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CPM Ground App (Stack 3/3): one CloudFront distribution serving app.html (from a
+  private S3 bucket via Origin Access Control) as the default behavior and proxying
+  /api/* to the EC2 backend's Elastic IP. One HTTPS domain for both - no CORS to
+  configure, no custom domain needed (CloudFront's own *.cloudfront.net cert covers
+  it), and mobile browsers get the secure context camera/GPS require.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: cpm-ground-app
+  BackendPublicIp:
+    Type: String
+    Description: The EC2 Elastic IP from compute.yaml's PublicIp output.
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-frontend-${AWS::AccountId}-${AWS::Region}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectName}-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        HttpVersion: http2
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            S3OriginConfig: {}
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+          - Id: ApiOrigin
+            DomainName: !Ref BackendPublicIp
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              HTTPPort: 80
+              OriginSSLProtocols: [TLSv1.2]
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          # AWS managed "CachingOptimized" policy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+            # AWS managed "CachingDisabled" policy - never cache API responses
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            # AWS managed "AllViewer" origin request policy - forwards Authorization,
+            # Idempotency-Key, and every other header/query string/cookie through untouched
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+Outputs:
+  FrontendBucketName: { Value: !Ref FrontendBucket }
+  DistributionId: { Value: !Ref Distribution }
+  CloudFrontDomainName: { Value: !GetAtt Distribution.DomainName }
+  AppUrl: { Value: !Sub "https://${Distribution.DomainName}" }

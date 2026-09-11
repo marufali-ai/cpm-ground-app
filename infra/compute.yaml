@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CPM Ground App (Stack 2/3, free-tier shape): a single EC2 t3.micro running the
+  FastAPI backend in Docker. The image is built ON the instance at boot from a
+  source zip in S3 (no ECR/CodeBuild/local Docker needed). Reachable only through
+  CloudFront (see network.yaml's security group) - no SSH port; use SSM Session
+  Manager (`aws ssm start-session --target <instance-id>`) for a shell.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: cpm-ground-app
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  InstanceType:
+    Type: String
+    Default: t3.micro
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+  Ec2SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  BucketName:
+    Type: String
+  RDSEndpointAddress:
+    Type: String
+  RDSEndpointPort:
+    Type: String
+    Default: "5432"
+  DBName:
+    Type: String
+    Default: cpm
+  DBMasterUsername:
+    Type: String
+    Default: cpmadmin
+  DBMasterPassword:
+    Type: String
+    NoEcho: true
+  JwtSecret:
+    Type: String
+    NoEcho: true
+  CorsOrigins:
+    Type: String
+    Default: "*"
+  ExposeOtp:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Leave true until real SMS delivery exists - vendor-code login is otherwise the only working login path.
+  SeedOnStart:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Leave true for the first deploy to create the baseline catalog + demo/admin users, then redeploy with false.
+  SourceObjectVersion:
+    Type: String
+    Default: ""
+    Description: Bumped by deploy.ps1 on every redeploy so the launch template / user-data hash changes and EC2 actually re-runs it.
+
+Resources:
+  Ec2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-ec2-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - { Effect: Allow, Principal: { Service: ec2.amazonaws.com }, Action: sts:AssumeRole }
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: app-bucket-access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject]
+                Resource: !Sub "arn:aws:s3:::${BucketName}/src/*"
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource: !Sub "arn:aws:s3:::${BucketName}/evidence/*"
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${BucketName}"
+
+  Ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "${ProjectName}-ec2-profile"
+      Roles: [!Ref Ec2Role]
+
+  ElasticIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags: [{ Key: Name, Value: !Sub "${ProjectName}-eip" }]
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroupIds: [!Ref Ec2SecurityGroupId]
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 20, VolumeType: gp2 }
+      Tags: [{ Key: Name, Value: !Sub "${ProjectName}-backend" }, { Key: Project, Value: !Ref ProjectName }]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -ex
+          # SourceObjectVersion=${SourceObjectVersion}  (forces a new launch when the source changes)
+
+          # small swap file - t3.micro has 1GB RAM, `docker build`'s pip install can spike
+          fallocate -l 1G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=1024
+          chmod 600 /swapfile
+          mkswap /swapfile
+          swapon /swapfile
+          echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+          dnf install -y docker unzip
+          systemctl enable --now docker
+
+          mkdir -p /opt/cpm
+          aws s3 cp "s3://${BucketName}/src/backend-src.zip" /opt/cpm/backend-src.zip --region ${AWS::Region}
+          rm -rf /opt/cpm/backend
+          mkdir -p /opt/cpm/backend
+          # unzip exits 1 (its "warning" code, not a real failure) when a zip's internal paths use
+          # backslashes - which is exactly what Windows' Compress-Archive produces. Tolerate that.
+          unzip -o /opt/cpm/backend-src.zip -d /opt/cpm/backend || true
+          test -f /opt/cpm/backend/Dockerfile || { echo "FATAL: backend source did not extract correctly"; exit 1; }
+
+          cd /opt/cpm/backend
+          docker build -t cpm-backend:latest .
+
+          docker rm -f cpm-api || true
+          docker run -d --name cpm-api --restart unless-stopped -p 80:8000 \
+            -e CPM_ENVIRONMENT=production \
+            -e CPM_EXPOSE_OTP='${ExposeOtp}' \
+            -e CPM_SEED_ON_START='${SeedOnStart}' \
+            -e CPM_STORAGE_BACKEND=s3 \
+            -e CPM_S3_BUCKET='${BucketName}' \
+            -e CPM_AWS_REGION='${AWS::Region}' \
+            -e CPM_DB_HOST='${RDSEndpointAddress}' \
+            -e CPM_DB_PORT='${RDSEndpointPort}' \
+            -e CPM_DB_NAME='${DBName}' \
+            -e CPM_DB_USER='${DBMasterUsername}' \
+            -e CPM_DB_PASSWORD='${DBMasterPassword}' \
+            -e CPM_JWT_SECRET='${JwtSecret}' \
+            -e CPM_CORS_ORIGINS='${CorsOrigins}' \
+            cpm-backend:latest
+
+  EipAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt ElasticIp.AllocationId
+      InstanceId: !Ref Ec2Instance
+
+Outputs:
+  InstanceId: { Value: !Ref Ec2Instance }
+  PublicIp: { Value: !Ref ElasticIp }

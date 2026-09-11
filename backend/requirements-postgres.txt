@@ -1,0 +1,5 @@
+# Extra dependency for the PostgreSQL deployment path (PRD 59).
+# Local development uses SQLite and does not need this.
+-r requirements.txt
+psycopg[binary]>=3.2,<4
+boto3>=1.35,<2   # S3 evidence storage backend (CPM_STORAGE_BACKEND=s3)

@@ -1,0 +1,9 @@
+{
+  "appId": "com.cpm.groundevidence",
+  "appName": "CPM Ground Evidence",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}

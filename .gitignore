@@ -1,0 +1,14 @@
+# Node
+node_modules/
+mobile/node_modules/
+
+# Generated mobile web assets (regenerate with mobile/build-www.ps1)
+mobile/www/
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
