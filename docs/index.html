@@ -929,6 +929,7 @@ function openMenu(){
     ['⚙','Settings & Config','#/settings']
   ];
   if(s&&s.role!=='Technician')links=[['◱','Stakeholder View','#/stakeholder']].concat(links.slice(1));
+  if(s&&s.role==='SystemAdministrator')links.push(['👤','Manage Users','#/users']);
   var html=links.map(function(l){return '<div class="menu-link" data-go="'+l[2]+'"><span class="mi">'+l[0]+'</span>'+h(l[1])+'</div>';}).join('')+
     '<div class="menu-link" data-act="logout"><span class="mi">⏻</span>Sign out'+(s?' ('+h(s.name)+')':'')+'</div>';
   sheet('Menu',html);
@@ -1760,6 +1761,85 @@ VIEWS['stakeholder']={html:function(){
     }).join(''):'<div class="banner info">No submitted installations yet. Sign in as a Technician to create one.</div>')
   });
 },after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
+
+VIEWS['users']={html:function(){
+  if(!state.session||state.session.role!=='SystemAdministrator'){
+    return shell({title:'Manage Users',back:true,body:'<div class="banner bad">Admin access required.</div>'});
+  }
+  var roles=['Technician','VendorSupervisor','CPM','Operations','Delivery','Management','SystemAdministrator'];
+  return shell({title:'Manage Users',sub:'Real people, real logins',back:true,body:
+    '<div class="card stack">'+
+      '<div class="eyebrow">Add a person</div>'+
+      '<p class="lede">Only people added here can sign in — there is no self-signup. Give a technician their own mobile number so OTP login works with their real phone.</p>'+
+      '<div class="field"><label for="unName">Full name</label><input id="unName" placeholder="e.g. Priya Sharma"></div>'+
+      '<div class="field"><label for="unRole">Role</label><select id="unRole">'+roles.map(function(r){return '<option>'+h(r)+'</option>';}).join('')+'</select></div>'+
+      '<div class="seg" role="tablist"><button id="unTabOtp" aria-pressed="true">Mobile + OTP</button><button id="unTabVc" aria-pressed="false">Vendor code</button></div>'+
+      '<div id="unIdentForm"></div>'+
+      '<button class="btn primary block" id="unSave">Add person</button>'+
+    '</div>'+
+    '<div class="card stack">'+
+      '<div class="between"><div class="eyebrow">People</div><span class="num" id="unCount">…</span></div>'+
+      '<div id="unList"><div class="skel" style="height:60px"></div></div>'+
+    '</div>'
+  });
+},after:function(){
+  bindChrome();
+  if(!state.session||state.session.role!=='SystemAdministrator')return;
+  var mode='otp';
+  function paintIdent(){
+    var f=$('#unIdentForm');
+    if(mode==='otp'){
+      f.innerHTML='<div class="field"><label for="unMobile">Mobile number</label><input id="unMobile" class="mono" inputmode="numeric" placeholder="9876543210"></div>';
+    }else{
+      f.innerHTML='<div class="field"><label for="unVc">Vendor code</label><input id="unVc" placeholder="VEND-XXX-00"></div>'+
+        '<div class="field"><label for="unPw">Password</label><input id="unPw" type="password"></div>';
+    }
+  }
+  $('#unTabOtp').addEventListener('click',function(){mode='otp';$('#unTabOtp').setAttribute('aria-pressed','true');$('#unTabVc').setAttribute('aria-pressed','false');paintIdent();});
+  $('#unTabVc').addEventListener('click',function(){mode='vc';$('#unTabVc').setAttribute('aria-pressed','true');$('#unTabOtp').setAttribute('aria-pressed','false');paintIdent();});
+  paintIdent();
+
+  async function loadUsers(){
+    try{
+      var users=await api('GET','/admin/users');
+      $('#unCount').textContent=users.length;
+      $('#unList').innerHTML=users.length?users.map(function(u){
+        var ident=u.mobile_number?('mobile '+u.mobile_number):(u.vendor_code?('vendor code '+u.vendor_code):'—');
+        var disabled=u.status&&u.status!=='active';
+        return '<div class="row" style="cursor:default"><span class="stripe '+(disabled?'mute':'good')+'"></span>'+
+          '<div class="rmain"><b>'+h(u.name)+'</b><small>'+h(u.user_id)+' · '+h(u.role)+' · '+h(ident)+(disabled?' · disabled':'')+'</small></div>'+
+          '<button class="btn sm ghost" data-toggle="'+h(u.user_id)+'" data-status="'+(disabled?'active':'disabled')+'">'+(disabled?'Enable':'Disable')+'</button>'+
+        '</div>';
+      }).join(''):'<div class="banner info">No one added yet.</div>';
+      $$('[data-toggle]',$('#unList')).forEach(function(el){
+        el.addEventListener('click',async function(){
+          try{ await api('PATCH','/admin/users/'+el.getAttribute('data-toggle'),{body:{status:el.getAttribute('data-status')}}); toast('Updated'); loadUsers(); }
+          catch(e){ toast(apiErrMsg(e),'bad'); }
+        });
+      });
+    }catch(e){ $('#unList').innerHTML='<div class="banner bad">Could not load: '+h(apiErrMsg(e))+'</div>'; }
+  }
+  loadUsers();
+
+  $('#unSave').addEventListener('click',async function(){
+    var name=$('#unName').value.trim(); if(!name){toast('Enter a name','bad');return;}
+    var body={name:name,role:$('#unRole').value};
+    if(mode==='otp'){
+      var mob=$('#unMobile').value.trim(); if(mob.length<6){toast('Enter a valid mobile number','bad');return;}
+      body.mobile_number=mob;
+    }else{
+      var vc=$('#unVc').value.trim(), pw=$('#unPw').value;
+      if(!vc||!pw){toast('Enter vendor code and password','bad');return;}
+      body.vendor_code=vc; body.password=pw;
+    }
+    try{
+      var resp=await api('POST','/admin/users',{body:body});
+      toast('Added '+resp.name+' ('+resp.user_id+')');
+      $('#unName').value=''; if($('#unMobile'))$('#unMobile').value=''; if($('#unVc'))$('#unVc').value=''; if($('#unPw'))$('#unPw').value='';
+      loadUsers();
+    }catch(e){ toast(apiErrMsg(e),'bad'); }
+  });
+}};
 
 VIEWS['settings']={html:function(){
   var c=state.config;
