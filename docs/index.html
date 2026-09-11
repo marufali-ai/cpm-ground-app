@@ -188,7 +188,7 @@
   .cam video{flex:1;width:100%;object-fit:cover;background:#05070b}
   .cam .camhud{position:absolute;top:0;left:0;right:0;padding:14px 16px calc(14px + env(safe-area-inset-top));color:#fff;display:flex;justify-content:space-between;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.6)}
   .cam .guide{position:absolute;inset:64px 26px 190px;border:2px dashed rgba(255,255,255,.82);border-radius:14px;pointer-events:none}
-  .cam .guide::after{content:"Keep the unit in frame â€” include surrounding context";position:absolute;left:0;right:0;bottom:-30px;text-align:center;color:rgba(255,255,255,.9);font-size:11px;font-weight:600}
+  .cam .guide::after{content:"Keep the unit in frame — include surrounding context";position:absolute;left:0;right:0;bottom:-30px;text-align:center;color:rgba(255,255,255,.9);font-size:11px;font-weight:600}
   .cam .gpsband{position:absolute;left:16px;right:16px;bottom:150px;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.7)}
   .cam .camctl{position:absolute;left:0;right:0;bottom:0;padding:20px 24px calc(26px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between}
   .cam .shutter{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.45);cursor:pointer}
@@ -279,13 +279,13 @@ async function sha256(blob){
 // Base URL of the live backend. Override per-device with ?api=https://... (persisted),
 // or by setting localStorage['cpm_api_base'] directly. Defaults to the local dev server.
 var API_BASE=(function(){
-  // Set by the mobile (Capacitor) build's index.html â€” its WebView origin is a fixed
+  // Set by the mobile (Capacitor) build's index.html — its WebView origin is a fixed
   // "localhost", which would otherwise be mistaken for a local dev server below.
   if(window.CPM_API_BASE)return window.CPM_API_BASE.replace(/\/$/,'');
   try{ var q=new URLSearchParams(location.search).get('api'); if(q){localStorage.setItem('cpm_api_base',q);return q.replace(/\/$/,'');} }catch(e){}
   try{ var s=localStorage.getItem('cpm_api_base'); if(s)return s.replace(/\/$/,''); }catch(e){}
   // Same-origin deploys (the app and API served behind one CloudFront domain) need no base
-  // at all â€” a relative path avoids CORS entirely. Only local dev needs the explicit localhost URL.
+  // at all — a relative path avoids CORS entirely. Only local dev needs the explicit localhost URL.
   if(location.hostname==='localhost'||location.hostname==='127.0.0.1')return 'http://127.0.0.1:8000/api/v1';
   return '/api/v1';
 })();
@@ -299,7 +299,7 @@ async function apiRaw(method,path,opts){
   else if(opts.body!==undefined){ headers['Content-Type']='application/json'; init.body=JSON.stringify(opts.body); }
   var res;
   try{ res=await fetch(API_BASE+path,init); }
-  catch(e){ throw {code:'NETWORK',message:'Could not reach the server â€” check connectivity.',network:true}; }
+  catch(e){ throw {code:'NETWORK',message:'Could not reach the server — check connectivity.',network:true}; }
   var data=null;
   try{ data=await res.json(); }catch(e){}
   if(!res.ok){
@@ -316,7 +316,7 @@ async function tryRefresh(){
     return true;
   }catch(e){
     audit('auth',state.session.userId,'SESSION_EXPIRED',{});
-    state.session=null; save(); toast('Session expired â€” sign in again','bad'); location.replace('#/login');
+    state.session=null; save(); toast('Session expired — sign in again','bad'); location.replace('#/login');
     return false;
   }
 }
@@ -372,7 +372,7 @@ function freshState(){
     v:3, session:null, deviceId:uid('DEV'),
     config:JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
     projects:[],   // populated from GET /projects + /projects/{id}/centers after login (loadCatalog())
-    assignments:[],   // vendor allocation isn't in the current backend â€” pick center via "Browse projects"
+    assignments:[],   // vendor allocation isn't in the current backend — pick center via "Browse projects"
     seq:1244,
     activeId:null,
     installations:{},
@@ -387,7 +387,7 @@ function load(){
   catch(e){state=freshState();}
   if(!state||state.v!==3)state=freshState();
 }
-function save(){try{localStorage.setItem(LSKEY,JSON.stringify(state));}catch(e){toast('Storage write failed â€” device may be full','bad');}}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify(state));}catch(e){toast('Storage write failed — device may be full','bad');}}
 
 /* ============================== audit + timeline ============================== */
 function audit(entityType,entityId,action,extra){
@@ -424,22 +424,22 @@ function stopGps(){ if(GPS.watchId!=null&&navigator.geolocation){navigator.geolo
 function evalGps(center){
   var c=state.config;
   if(c.testGpsAtCenter){
-    return {status:'Verified',distance:12,accuracy:6,lat:center?center.lat:0,lng:center?center.lng:0,ts:Date.now(),provider:'test-mode',message:'GPS test mode â€” treated as at center.'};
+    return {status:'Verified',distance:12,accuracy:6,lat:center?center.lat:0,lng:center?center.lng:0,ts:Date.now(),provider:'test-mode',message:'GPS test mode — treated as at center.'};
   }
   if(!GPS.last)return {status:'Unavailable',distance:null,accuracy:null,lat:null,lng:null,ts:Date.now(),provider:'none',message:'Location unavailable. Allow location access or move to open sky.'};
   var L=GPS.last, dist=center?haversine(L,center):null;
   var out={status:'Verified',distance:dist,accuracy:Math.round(L.accuracy),lat:L.lat,lng:L.lng,ts:L.ts,provider:'gps',message:''};
-  if(c.simulateMock||GPS.suspicious){out.status='Suspicious';out.message='Suspected location manipulation â€” session flagged for review.';return out;}
+  if(c.simulateMock||GPS.suspicious){out.status='Suspicious';out.message='Suspected location manipulation — session flagged for review.';return out;}
   if(dist==null){return out;}
   var margin=Math.max(L.accuracy,15);
   if(dist>c.geofenceRadius+margin){out.status='Outside Geofence';out.message='You are outside the permitted center location. Move closer to the center to capture installation evidence.';}
-  else if(dist>c.geofenceRadius){out.status='Warning';out.message='Near the geofence edge and GPS is uncertain â€” capture allowed, distance recorded.';}
-  else if(L.accuracy>c.gpsPoorAccuracy){out.status='Warning';out.message='GPS accuracy is poor (Â±'+Math.round(L.accuracy)+'m). Capture allowed; accuracy recorded.';}
+  else if(dist>c.geofenceRadius){out.status='Warning';out.message='Near the geofence edge and GPS is uncertain — capture allowed, distance recorded.';}
+  else if(L.accuracy>c.gpsPoorAccuracy){out.status='Warning';out.message='GPS accuracy is poor (±'+Math.round(L.accuracy)+'m). Capture allowed; accuracy recorded.';}
   return out;
 }
 function gpsBadge(g){
   var m={'Verified':'b-good','Warning':'b-warn','Outside Geofence':'b-bad','Unavailable':'b-mute','Suspicious':'b-purple'};
-  return '<span class="badge '+m[g.status]+'"><span class="bd"></span>GPS '+h(g.status)+(g.distance!=null?' Â· '+Math.round(g.distance)+'m':'')+'</span>';
+  return '<span class="badge '+m[g.status]+'"><span class="bd"></span>GPS '+h(g.status)+(g.distance!=null?' · '+Math.round(g.distance)+'m':'')+'</span>';
 }
 var _gpsThrottle=0;
 function refreshGpsBits(){
@@ -457,20 +457,20 @@ function updateStrip(){
   strip.className='strip'+(on?'':' off');
   var inst=activeInst();
   var gtxt='';
-  if(inst){var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});gtxt=' Â· GPS '+g.status;}
+  if(inst){var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});gtxt=' · GPS '+g.status;}
   strip.innerHTML='<span class="dot"></span><b>'+(on?'Online':'Offline')+'</b>'+
-    (pend?' Â· <b>'+pend+'</b> pending sync':(q.length?' Â· all synced':''))+
+    (pend?' · <b>'+pend+'</b> pending sync':(q.length?' · all synced':''))+
     h(gtxt);
 }
 var SYNC_RUN=false;
 async function syncEvidenceItem(item){
   var inst=state.installations[item.instId]; var e=inst&&inst.evidence[item.refId];
-  if(!inst||!e)return; // local record gone â€” nothing to do, treat as done
+  if(!inst||!e)return; // local record gone — nothing to do, treat as done
   if(e.deleted)return; // pre-submission deletes are never queued in the first place
   var rec=await blobGet(item.refId);
   if(!rec||!rec.original)throw {code:'BLOB_MISSING',message:'Image data is missing on this device.'};
   if(e.serverEvidenceId){
-    // already uploaded once before â€” this queued item is a post-submission replace (PRD 41)
+    // already uploaded once before — this queued item is a post-submission replace (PRD 41)
     var rfd=new FormData();
     rfd.append('file',rec.original,'original.jpg');
     if(rec.watermarked)rfd.append('watermarked',rec.watermarked,'watermarked.jpg');
@@ -549,7 +549,7 @@ async function syncTick(){
     audit(item.type,item.refId,'SYNCED',{});
   }catch(e){
     if(e&&e.notReady){
-      item.status='Pending'; item.attempts=Math.max(0,item.attempts-1); // not a failure â€” just waiting on a dependency
+      item.status='Pending'; item.attempts=Math.max(0,item.attempts-1); // not a failure — just waiting on a dependency
     }else{
       item.status='Failed';
       item.nextRetryAt=now+Math.min(60000,1500*Math.pow(2,item.attempts));
@@ -567,7 +567,7 @@ function applySync(item){
   inst.updatedAt=Date.now();
 }
 function queueSync(type,refId,instId){
-  // dedup only against a not-yet-resolved entry â€” a *new* item after a prior 'Synced' one is
+  // dedup only against a not-yet-resolved entry — a *new* item after a prior 'Synced' one is
   // legitimate (e.g. a post-submission replace re-syncing the same evidence id with a new version).
   if(state.syncQueue.some(function(x){return x.type===type&&x.refId===refId&&(x.status==='Pending'||x.status==='Uploading');}))return;
   state.syncQueue.push({id:uid('SYQ'),type:type,refId:refId,instId:instId,status:'Pending',attempts:0,nextRetryAt:0,idempotencyKey:uid('IDK'),queuedAt:Date.now()});
@@ -582,7 +582,7 @@ function toast(msg,kind){
 function closeSheet(){ MODAL.innerHTML=''; }
 function sheet(title,bodyHTML){
   MODAL.innerHTML='<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">'+
-    '<div class="sh-hd"><h3 class="h-md">'+h(title)+'</h3><button class="iconbtn" id="shx" aria-label="Close">âœ•</button></div>'+
+    '<div class="sh-hd"><h3 class="h-md">'+h(title)+'</h3><button class="iconbtn" id="shx" aria-label="Close">✕</button></div>'+
     '<div class="sh-bd">'+bodyHTML+'</div></div></div>';
   $('#scrim').addEventListener('click',function(e){if(e.target.id==='scrim')closeSheet();});
   $('#shx').addEventListener('click',closeSheet);
@@ -615,7 +615,7 @@ function openCamera(opts){
       '<button class="shutter" id="camshot" aria-label="Capture"></button>'+
       '<button class="cambtn" id="camswap">Flip</button></div>'+
     '<div class="fallback" hidden><div style="font-weight:700;font-size:16px">In-app camera unavailable here</div>'+
-      '<div style="font-size:13px;opacity:.85;max-width:280px">Your browser blocked live camera in this frame. Use the device camera instead â€” gallery is not offered.</div>'+
+      '<div style="font-size:13px;opacity:.85;max-width:280px">Your browser blocked live camera in this frame. Use the device camera instead — gallery is not offered.</div>'+
       '<input type="file" accept="image/*" capture="'+(facing==='user'?'user':'environment')+'" id="camfile" style="color:#fff">'+
       '<button class="cambtn" id="camx2">Cancel</button></div>';
   document.body.appendChild(wrap);
@@ -696,7 +696,7 @@ async function loadCatalog(){
     state.projects=full; save();
     return true;
   }catch(e){
-    toast(state.projects.length?'Could not refresh projects â€” showing last known list':'Could not load projects: '+apiErrMsg(e),'warn');
+    toast(state.projects.length?'Could not refresh projects — showing last known list':'Could not load projects: '+apiErrMsg(e),'warn');
     return false;
   }
 }
@@ -756,21 +756,21 @@ async function addEvidence(inst,equip){
     var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
     if(g.status==='Outside Geofence'){
       sheet('Outside center location','<div class="banner bad">'+h(g.message)+'</div>'+
-        '<div class="readout"><div class="kv"><span>Distance</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'â€”')+'</b></div>'+
+        '<div class="readout"><div class="kv"><span>Distance</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'—')+'</b></div>'+
         '<div class="kv"><span>Geofence</span><b>'+state.config.geofenceRadius+' m</b></div></div>'+
         '<button class="btn block" id="okc">Understood</button>');
       $('#okc').addEventListener('click',closeSheet);
       resolve(false); return;
     }
-    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS â€”')+'  Â·  Â±'+(g.accuracy!=null?g.accuracy:'?')+'m  Â·  '+g.status;
+    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS —')+'  ·  ±'+(g.accuracy!=null?g.accuracy:'?')+'m  ·  '+g.status;
     openCamera({facing:'environment',guide:true,gpsText:gtxt,title:equip.type+' '+equip.unitNumber,onCapture:async function(raw){
       try{
         var evId=uid('EVD');
         var wm=await watermark(raw,{lines:[
-          inst.centerCode+' Â· '+inst.centerName,
-          equip.type+' '+equip.unitNumber+' Â· '+(equip.location||'â€”'),
+          inst.centerCode+' · '+inst.centerName,
+          equip.type+' '+equip.unitNumber+' · '+(equip.location||'—'),
           fmtDate(Date.now())+'  '+fmtTime(Date.now()),
-          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'âœ“ Verified':'âš  '+g.status),
+          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'✓ Verified':'⚠ '+g.status),
           'TECH '+inst.technicianId
         ]});
         var hash=await sha256(raw);
@@ -796,15 +796,15 @@ async function addEvidence(inst,equip){
 async function captureSelfie(inst,which){
   return new Promise(function(resolve){
     var g=evalGps({lat:inst.centerLat,lng:inst.centerLng});
-    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS â€”')+'  Â·  '+g.status;
+    var gtxt=(g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS —')+'  ·  '+g.status;
     openCamera({facing:'user',guide:false,gpsText:gtxt,title:(which==='start'?'Start selfie':'Submission selfie'),onCapture:async function(raw){
       try{
         var evId=uid('SLF');
         var wm=await watermark(raw,{lines:[
-          inst.centerCode+' Â· '+inst.centerName,
-          (which==='start'?'START SELFIE':'SUBMISSION SELFIE')+' Â· '+inst.id,
+          inst.centerCode+' · '+inst.centerName,
+          (which==='start'?'START SELFIE':'SUBMISSION SELFIE')+' · '+inst.id,
           fmtDate(Date.now())+'  '+fmtTime(Date.now()),
-          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'âœ“ Verified':'âš  '+g.status),
+          (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+(g.status==='Verified'?'✓ Verified':'⚠ '+g.status),
           'TECH '+inst.technicianId
         ]});
         var hash=await sha256(raw);
@@ -830,7 +830,7 @@ async function deleteEvidence(inst,evId){
   await blobDel(evId); delete URLCACHE[evId];
   audit('evidence',evId,'DELETED',{reason:reason,oldValue:e.equipmentType+' '+e.unitNumber});
   tl(inst,'Evidence '+evId.slice(0,10)+' deleted');
-  save(); toast('Evidence deleted â€” audit event recorded'); render();
+  save(); toast('Evidence deleted — audit event recorded'); render();
 }
 async function replaceEvidence(inst,evId){
   var reason=await promptText('Replace evidence','Reason for replacement (kept in audit history)','Better angle / clearer image');
@@ -842,8 +842,8 @@ async function replaceEvidence(inst,evId){
       var rec=await blobGet(evId)||{versions:[]};
       rec.versions=rec.versions||[]; if(rec.watermarked)rec.versions.push({blob:rec.watermarked,version:e.version,ts:Date.now(),reason:reason});
       var wm=await watermark(raw,{lines:[
-        inst.centerCode+' Â· '+inst.centerName,
-        e.equipmentType+' '+e.unitNumber+' Â· REPLACED v'+(e.version+1),
+        inst.centerCode+' · '+inst.centerName,
+        e.equipmentType+' '+e.unitNumber+' · REPLACED v'+(e.version+1),
         fmtDate(Date.now())+'  '+fmtTime(Date.now()),
         (g.lat!=null?g.lat.toFixed(5)+', '+g.lng.toFixed(5):'GPS unavailable')+'   GPS '+g.status,
         'TECH '+inst.technicianId
@@ -854,7 +854,7 @@ async function replaceEvidence(inst,evId){
       audit('evidence',evId,'REPLACED',{reason:reason,oldValue:'v'+(e.version-1)+' '+oldHash.slice(0,12),newValue:'v'+e.version+' '+e.hash.slice(0,12)});
       tl(inst,e.equipmentType+' '+e.unitNumber+' evidence replaced (v'+e.version+')');
       queueSync('evidence',evId,inst.id);
-      save(); toast('Evidence replaced â€” previous version retained'); render();
+      save(); toast('Evidence replaced — previous version retained'); render();
     }catch(err){ toast('Replace failed: '+err.message,'bad'); }
   }});
 }
@@ -867,7 +867,7 @@ function promptText(title,label,ph){
   });
 }
 function dupSerialLocal(serial){
-  // offline fallback only â€” scans what's on this device when /assets/check can't be reached
+  // offline fallback only — scans what's on this device when /assets/check can't be reached
   var insts=state.installations;
   for(var k in insts){ var it=insts[k];
     var all=[].concat(it.cameras,it.monitors,it.upsUnits,it.routers);
@@ -907,11 +907,11 @@ function shell(o){
   // o: {title,sub,back,menu,body,action}
   return ''+
   '<div class="appbar">'+
-    (o.back?'<button class="iconbtn" id="navback" aria-label="Back">â€¹</button>':'<div class="brand">CPM</div>')+
+    (o.back?'<button class="iconbtn" id="navback" aria-label="Back">‹</button>':'<div class="brand">CPM</div>')+
     '<div class="ttl"><b>'+h(o.title)+'</b>'+(o.sub?'<span>'+h(o.sub)+'</span>':'')+'</div>'+
-    (o.menu===false?'<div style="width:38px"></div>':'<button class="iconbtn" id="navmenu" aria-label="Menu">â‹®</button>')+
+    (o.menu===false?'<div style="width:38px"></div>':'<button class="iconbtn" id="navmenu" aria-label="Menu">⋮</button>')+
   '</div>'+
-  '<div class="strip" id="strip"><span class="dot"></span><b>â€”</b></div>'+
+  '<div class="strip" id="strip"><span class="dot"></span><b>—</b></div>'+
   '<div class="scroll">'+o.body+'</div>'+
   (o.action?'<div class="actionbar">'+o.action+'</div>':'');
 }
@@ -923,14 +923,14 @@ function bindChrome(){
 function openMenu(){
   var s=state.session;
   var links=[
-    ['âŸ³','Sync Center','#/sync'],
-    ['â—·','Installation History','#/history'],
-    ['â','Audit Trail','#/audit'],
-    ['âš™','Settings & Config','#/settings']
+    ['⟳','Sync Center','#/sync'],
+    ['◷','Installation History','#/history'],
+    ['❏','Audit Trail','#/audit'],
+    ['⚙','Settings & Config','#/settings']
   ];
-  if(s&&s.role!=='Technician')links=[['â—±','Stakeholder View','#/stakeholder']].concat(links.slice(1));
+  if(s&&s.role!=='Technician')links=[['◱','Stakeholder View','#/stakeholder']].concat(links.slice(1));
   var html=links.map(function(l){return '<div class="menu-link" data-go="'+l[2]+'"><span class="mi">'+l[0]+'</span>'+h(l[1])+'</div>';}).join('')+
-    '<div class="menu-link" data-act="logout"><span class="mi">â»</span>Sign out'+(s?' ('+h(s.name)+')':'')+'</div>';
+    '<div class="menu-link" data-act="logout"><span class="mi">⏻</span>Sign out'+(s?' ('+h(s.name)+')':'')+'</div>';
   sheet('Menu',html);
   $$('.menu-link',MODAL).forEach(function(el){
     el.addEventListener('click',function(){
@@ -967,9 +967,9 @@ function sevBadge(s){
 function gpsLivePanel(g){
   return '<div class="readout" id="gpslive">'+
     '<div class="kv"><span>status</span><b>'+h(g.status)+'</b></div>'+
-    '<div class="kv"><span>lat, lng</span><b>'+(g.lat!=null?g.lat.toFixed(6)+', '+g.lng.toFixed(6):'â€”')+'</b></div>'+
-    '<div class="kv"><span>accuracy</span><b>'+(g.accuracy!=null?'Â± '+g.accuracy+' m':'â€”')+'</b></div>'+
-    '<div class="kv"><span>distance to center</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'â€”')+'</b></div>'+
+    '<div class="kv"><span>lat, lng</span><b>'+(g.lat!=null?g.lat.toFixed(6)+', '+g.lng.toFixed(6):'—')+'</b></div>'+
+    '<div class="kv"><span>accuracy</span><b>'+(g.accuracy!=null?'± '+g.accuracy+' m':'—')+'</b></div>'+
+    '<div class="kv"><span>distance to center</span><b>'+(g.distance!=null?Math.round(g.distance)+' m':'—')+'</b></div>'+
     '<div class="kv"><span>geofence</span><b>'+state.config.geofenceRadius+' m</b></div>'+
     '<div class="kv"><span>provider</span><b>'+h(g.provider)+'</b></div>'+
   '</div>';
@@ -992,8 +992,8 @@ function evViewer(evId){
         '<div class="kv"><span>evidence id</span><b>'+h(e.evidenceId)+'</b></div>'+
         '<div class="kv"><span>installation</span><b>'+h(e.installationId)+'</b></div>'+
         '<div class="kv"><span>captured</span><b>'+h(e.date+' '+e.time)+'</b></div>'+
-        '<div class="kv"><span>lat, lng</span><b>'+(e.lat!=null?e.lat.toFixed(6)+', '+e.lng.toFixed(6):'â€”')+'</b></div>'+
-        '<div class="kv"><span>gps</span><b>'+h(e.gpsStatus)+' Â± '+(e.gpsAccuracy||'?')+'m</b></div>'+
+        '<div class="kv"><span>lat, lng</span><b>'+(e.lat!=null?e.lat.toFixed(6)+', '+e.lng.toFixed(6):'—')+'</b></div>'+
+        '<div class="kv"><span>gps</span><b>'+h(e.gpsStatus)+' ± '+(e.gpsAccuracy||'?')+'m</b></div>'+
         '<div class="kv"><span>sha-256</span><b style="word-break:break-all;font-size:10px">'+h(e.hash)+'</b></div>'+
         '<div class="kv"><span>version</span><b>v'+e.version+'</b></div>'+
         '<div class="kv"><span>sync</span><b>'+h(e.syncStatus)+'</b></div>'+
@@ -1019,8 +1019,8 @@ function bindThumbs(root){
 var VIEWS={};
 
 VIEWS['login']={html:function(){
-  return '<div class="appbar"><div class="brand">CPM</div><div class="ttl"><b>Ground Evidence</b><span>Field installation Â· v1</span></div><div style="width:38px"></div></div>'+
-  '<div class="strip" id="strip"><span class="dot"></span><b>â€”</b></div>'+
+  return '<div class="appbar"><div class="brand">CPM</div><div class="ttl"><b>Ground Evidence</b><span>Field installation · v1</span></div><div style="width:38px"></div></div>'+
+  '<div class="strip" id="strip"><span class="dot"></span><b>—</b></div>'+
   '<div class="scroll">'+
   '<div class="card stack">'+
     '<div class="eyebrow">Sign in</div>'+
@@ -1046,7 +1046,7 @@ VIEWS['login']={html:function(){
         try{
           var resp=await api('POST','/auth/login',{body:{mobile_number:mob}});
           challengeId=resp.challenge_id;
-          $('#otpArea').innerHTML=(resp.dev_otp?'<div class="banner info">Dev OTP: <b class="mono">'+h(resp.dev_otp)+'</b> â€” auto-filled below.</div>':'<div class="banner info">Code sent to '+h(mob)+'.</div>')+
+          $('#otpArea').innerHTML=(resp.dev_otp?'<div class="banner info">Dev OTP: <b class="mono">'+h(resp.dev_otp)+'</b> — auto-filled below.</div>':'<div class="banner info">Code sent to '+h(mob)+'.</div>')+
             '<div class="field"><label for="otp">Enter OTP</label><input id="otp" class="mono" inputmode="numeric" value="'+h(resp.dev_otp||'')+'"></div>';
           $('#sendOtp').textContent='Verify & sign in';
           $('#sendOtp').onclick=async function(){
@@ -1093,21 +1093,21 @@ VIEWS['home']={html:function(){
   var s=state.session;
   var assigned=state.assignments.map(function(code){var r=centerByCode(code);return r?{p:r.project,c:r.center}:null;}).filter(Boolean);
   var resume=activeInst();
-  return shell({title:'Home',sub:s.name+' Â· '+s.userId,body:
+  return shell({title:'Home',sub:s.name+' · '+s.userId,body:
     (resume&&!resume.submitted?'<div class="card stack" style="border-color:var(--accent)">'+
       '<div class="between"><div class="eyebrow" style="color:var(--accent)">Resumed session</div>'+statusBadge(resume.status)+'</div>'+
       '<h2 class="h-md">'+h(resume.centerName)+'</h2>'+
-      '<div class="lede mono">'+h(resume.id)+' Â· '+camsWithEvidence(resume)+'/'+resume.expectedCctv+' cameras Â· '+pendingCount()+' pending sync</div>'+
+      '<div class="lede mono">'+h(resume.id)+' · '+camsWithEvidence(resume)+'/'+resume.expectedCctv+' cameras · '+pendingCount()+' pending sync</div>'+
       '<button class="btn primary block" data-go="#/dash">Continue installation</button></div>':'')+
     '<div class="card stack">'+
-      '<div class="eyebrow">A Â· My assignments</div>'+
+      '<div class="eyebrow">A · My assignments</div>'+
       (assigned.length?assigned.map(function(a){
-        return '<button class="row" data-start="'+a.p.id+'|'+a.c.code+'"><span class="stripe info"></span><div class="rmain"><b>'+h(a.c.name)+'</b><small>'+h(a.c.code)+' Â· '+h(a.p.name)+' Â· CCTV '+a.c.expectedCctv+'</small></div><span class="chev">â€º</span></button>';
-      }).join(''):'<p class="lede">No centers assigned. Use Project â†’ Center below.</p>')+
+        return '<button class="row" data-start="'+a.p.id+'|'+a.c.code+'"><span class="stripe info"></span><div class="rmain"><b>'+h(a.c.name)+'</b><small>'+h(a.c.code)+' · '+h(a.p.name)+' · CCTV '+a.c.expectedCctv+'</small></div><span class="chev">›</span></button>';
+      }).join(''):'<p class="lede">No centers assigned. Use Project → Center below.</p>')+
     '</div>'+
     '<div class="card stack">'+
-      '<div class="eyebrow">B Â· Project â†’ Center</div>'+
-      '<p class="lede">Vendor allocation is not managed here â€” pick the center you are physically at.</p>'+
+      '<div class="eyebrow">B · Project → Center</div>'+
+      '<p class="lede">Vendor allocation is not managed here — pick the center you are physically at.</p>'+
       '<button class="btn ghost block" data-go="#/projects">Browse projects</button>'+
     '</div>'+
     '<div class="grid3">'+
@@ -1128,7 +1128,7 @@ VIEWS['home']={html:function(){
 VIEWS['projects']={html:function(){
   return shell({title:'Projects',back:true,body:
     state.projects.map(function(p){
-      return '<button class="row" data-go="#/project/'+p.id+'"><span class="stripe info"></span><div class="rmain"><b>'+h(p.name)+'</b><small>'+h(p.id)+' Â· '+p.centers.length+' centers</small></div><span class="chev">â€º</span></button>';
+      return '<button class="row" data-go="#/project/'+p.id+'"><span class="stripe info"></span><div class="rmain"><b>'+h(p.name)+'</b><small>'+h(p.id)+' · '+p.centers.length+' centers</small></div><span class="chev">›</span></button>';
     }).join('')
   });
 },after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
@@ -1138,7 +1138,7 @@ VIEWS['project']={html:function(p){
   return shell({title:proj.name,sub:proj.id,back:true,body:
     '<div class="eyebrow">Select the center you are at</div>'+
     proj.centers.map(function(c){
-      return '<button class="row" data-go="#/center/'+c.code+'"><span class="stripe mute"></span><div class="rmain"><b>'+h(c.name)+'</b><small>'+h(c.code)+' Â· '+h(c.city)+' Â· CCTV '+c.expectedCctv+'</small></div><span class="chev">â€º</span></button>';
+      return '<button class="row" data-go="#/center/'+c.code+'"><span class="stripe mute"></span><div class="rmain"><b>'+h(c.name)+'</b><small>'+h(c.code)+' · '+h(c.city)+' · CCTV '+c.expectedCctv+'</small></div><span class="chev">›</span></button>';
     }).join('')
   });
 },after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
@@ -1172,7 +1172,7 @@ VIEWS['center']={html:function(p){
   var ref=centerByCode(p[0]);
   $('#confok').addEventListener('change',function(e){ $('#startBtn').disabled=!e.target.checked; });
   $('#startBtn').addEventListener('click',async function(){
-    $('#startBtn').disabled=true; $('#startBtn').textContent='Startingâ€¦';
+    $('#startBtn').disabled=true; $('#startBtn').textContent='Starting…';
     var inst=await startInstallation(ref.project.id,ref.center.code);
     if(inst)CPM.go('#/selfie/start');
     else { $('#startBtn').disabled=false; $('#startBtn').textContent='Start installation'; }
@@ -1186,7 +1186,7 @@ VIEWS['selfie']={html:function(p){
   return shell({title:which==='start'?'Start selfie':'Submission selfie',sub:inst.centerCode,back:true,body:
     '<div class="card stack">'+
       '<div class="eyebrow">Mandatory live selfie</div>'+
-      '<p class="lede">Captured from the app camera only â€” no gallery. Stamped with your ID, the center, time and GPS.</p>'+
+      '<p class="lede">Captured from the app camera only — no gallery. Stamped with your ID, the center, time and GPS.</p>'+
       (has?'<div class="thumbs">'+thumbHTML(inst,has)+'</div><div class="banner good">Selfie captured.</div>':
         '<div class="banner warn">No '+which+' selfie yet.</div>')+
       '<button class="btn primary block" id="takeSelfie">'+(has?'Retake selfie':'Capture selfie')+'</button>'+
@@ -1220,7 +1220,7 @@ VIEWS['dash']={html:function(){
           }).join('')+
         '</div>'+
       '</div>'+
-      '<div class="banner info" style="margin-top:2px">Status is <b>your</b> call. Compliance is what the system has actually received â€” the two are shown separately.</div>'+
+      '<div class="banner info" style="margin-top:2px">Status is <b>your</b> call. Compliance is what the system has actually received — the two are shown separately.</div>'+
     '</div>'+
     '<div class="grid2">'+
       '<div class="tile"><div class="k num">'+camsWithEvidence(inst)+' / '+inst.expectedCctv+'</div><div class="l">CCTV cameras</div></div>'+
@@ -1230,11 +1230,11 @@ VIEWS['dash']={html:function(){
     '</div>'+
     (openIssues?'<div class="banner warn"><b>'+openIssues+'</b> open issue'+(openIssues>1?'s':'')+' on this installation.</div>':'')+
     '<div class="stack">'+
-      '<button class="row" data-go="#/cctv"><span class="stripe warn"></span><div class="rmain"><b>Continue CCTV</b><small>'+inst.cameras.length+' cameras recorded Â· expected '+inst.expectedCctv+'</small></div><span class="chev">â€º</span></button>'+
-      '<button class="row" data-go="#/monitor"><span class="stripe info"></span><div class="rmain"><b>Monitors</b><small>'+inst.monitors.length+' units</small></div><span class="chev">â€º</span></button>'+
-      '<button class="row" data-go="#/ups"><span class="stripe info"></span><div class="rmain"><b>UPS</b><small>'+inst.upsUnits.length+' units</small></div><span class="chev">â€º</span></button>'+
-      '<button class="row" data-go="#/internet"><span class="stripe info"></span><div class="rmain"><b>Internet router</b><small>'+(inst.routers[0].working==null?'working status not set':'internet '+(inst.routers[0].working?'working':'not working'))+'</small></div><span class="chev">â€º</span></button>'+
-      '<button class="row" data-go="#/issue/new"><span class="stripe bad"></span><div class="rmain"><b>Report an issue</b><small>'+inst.issues.length+' logged</small></div><span class="chev">â€º</span></button>'+
+      '<button class="row" data-go="#/cctv"><span class="stripe warn"></span><div class="rmain"><b>Continue CCTV</b><small>'+inst.cameras.length+' cameras recorded · expected '+inst.expectedCctv+'</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/monitor"><span class="stripe info"></span><div class="rmain"><b>Monitors</b><small>'+inst.monitors.length+' units</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/ups"><span class="stripe info"></span><div class="rmain"><b>UPS</b><small>'+inst.upsUnits.length+' units</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/internet"><span class="stripe info"></span><div class="rmain"><b>Internet router</b><small>'+(inst.routers[0].working==null?'working status not set':'internet '+(inst.routers[0].working?'working':'not working'))+'</small></div><span class="chev">›</span></button>'+
+      '<button class="row" data-go="#/issue/new"><span class="stripe bad"></span><div class="rmain"><b>Report an issue</b><small>'+inst.issues.length+' logged</small></div><span class="chev">›</span></button>'+
     '</div>'+
     '<div class="field"><label>Installation status (your decision)</label>'+
       '<select id="stsel">'+['Not Started','In Progress','Partially Completed','Completed'].map(function(s){return '<option'+(s===inst.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>',
@@ -1256,14 +1256,14 @@ VIEWS['cctv']={html:function(){
   return shell({title:'CCTV',sub:cwe+' / '+inst.expectedCctv+' with evidence',back:true,body:
     '<div class="card stack">'+
       '<div class="between"><div class="eyebrow">Expected cameras</div><span class="num h-lg">'+inst.expectedCctv+'</span></div>'+
-      '<p class="lede">You choose the numbering and the location. Duplicate numbers in this installation are blocked. Missing cameras stay visible â€” they never block submission.</p>'+
+      '<p class="lede">You choose the numbering and the location. Duplicate numbers in this installation are blocked. Missing cameras stay visible — they never block submission.</p>'+
       '<button class="btn primary block" id="addCam">Add camera</button>'+
     '</div>'+
-    (inst.cameras.length?'':'<div class="banner info">No cameras yet. Add the first â€” the app auto-advances to the next after each save.</div>')+
+    (inst.cameras.length?'':'<div class="banner info">No cameras yet. Add the first — the app auto-advances to the next after each save.</div>')+
     inst.cameras.map(function(c){
       var n=livePhotos(inst,c.photoIds).length;
       var stripe=n>=state.config.minPhotos?'good':(c.status&&c.status!=='Installed'?'bad':'warn');
-      return '<button class="row" data-cam="'+encodeURIComponent(c.id)+'"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(c.number)+'</b><small>'+h(c.location||'location not set')+' Â· '+n+' photo'+(n===1?'':'s')+(c.status?' Â· '+h(c.status):'')+(c.issueId?' Â· âš  issue':'')+'</small></div><span class="chev">â€º</span></button>';
+      return '<button class="row" data-cam="'+encodeURIComponent(c.id)+'"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(c.number)+'</b><small>'+h(c.location||'location not set')+' · '+n+' photo'+(n===1?'':'s')+(c.status?' · '+h(c.status):'')+(c.issueId?' · ⚠ issue':'')+'</small></div><span class="chev">›</span></button>';
     }).join('')+
     (inst.cameras.length>inst.expectedCctv?'<div class="banner good">Additional cameras recorded: +'+(inst.cameras.length-inst.expectedCctv)+' beyond expected.</div>':''),
     action:'<button class="btn ghost block" data-go="#/dash">Back to dashboard</button>'
@@ -1296,7 +1296,7 @@ VIEWS['cam']={html:function(p){
     '<div class="card stack">'+
       '<div class="field"><label for="camnum">Camera number</label><input id="camnum" value="'+h(cam.number)+'"><span class="hint">Must be unique within this installation.</span></div>'+
       '<div class="field"><label for="camloc">Location (mandatory)</label><select id="camloc">'+
-        '<option value="">â€” select â€”</option>'+cfg.cameraLocations.map(function(l){return '<option'+(l===cam.location?' selected':'')+'>'+h(l)+'</option>';}).join('')+'</select></div>'+
+        '<option value="">— select —</option>'+cfg.cameraLocations.map(function(l){return '<option'+(l===cam.location?' selected':'')+'>'+h(l)+'</option>';}).join('')+'</select></div>'+
       '<div class="field" id="customWrap"'+(cam.location==='Other'?'':' hidden')+'><label for="camcustom">Describe location</label><input id="camcustom" value="'+h(cam.customLocation||'')+'"></div>'+
       '<div class="field"><label for="camstat">Camera status</label><select id="camstat">'+cfg.cameraStatuses.map(function(s){return '<option'+(s===cam.status?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
       '<div class="field"><label for="camrem">Remarks (optional)</label><textarea id="camrem">'+h(cam.remarks||'')+'</textarea></div>'+
@@ -1306,10 +1306,10 @@ VIEWS['cam']={html:function(p){
       '<p class="lede">At least '+cfg.minPhotos+', up to '+cfg.maxPhotos+'. Show the camera <b>and</b> enough surroundings to place it.</p>'+
       '<div class="thumbs">'+
         photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
-        (photos.length<cfg.maxPhotos?'<button class="thumb add" id="capCam">ï¼‹<span>Capture</span></button>':'')+
+        (photos.length<cfg.maxPhotos?'<button class="thumb add" id="capCam">＋<span>Capture</span></button>':'')+
       '</div>'+
     '</div>'+
-    '<button class="row" id="camIssue"><span class="stripe bad"></span><div class="rmain"><b>'+(cam.issueId?'Edit camera issue':'Log an issue for this camera')+'</b><small>Every issue needs a photo</small></div><span class="chev">â€º</span></button>',
+    '<button class="row" id="camIssue"><span class="stripe bad"></span><div class="rmain"><b>'+(cam.issueId?'Edit camera issue':'Log an issue for this camera')+'</b><small>Every issue needs a photo</small></div><span class="chev">›</span></button>',
     action:'<button class="btn ghost block" id="saveCam">Save</button><button class="btn primary block" id="saveNext">Save &amp; next camera</button>'
   });
 },after:function(p){
@@ -1374,10 +1374,10 @@ function unitModule(kind){
         return '<div class="card stack">'+
           '<div class="between"><h3 class="h-md">'+h(u.number)+'</h3><button class="btn sm danger" data-del="'+encodeURIComponent(u.id)+'">Remove</button></div>'+
           '<div class="field"><label>Unit label</label><input data-num="'+encodeURIComponent(u.id)+'" value="'+h(u.number)+'"></div>'+
-          '<div class="field"><label>Serial number (optional)</label><input data-serial="'+encodeURIComponent(u.id)+'" value="'+h(u.serial||'')+'" placeholder="â€”"><span class="hint" data-dup="'+encodeURIComponent(u.id)+'"></span></div>'+
+          '<div class="field"><label>Serial number (optional)</label><input data-serial="'+encodeURIComponent(u.id)+'" value="'+h(u.serial||'')+'" placeholder="—"><span class="hint" data-dup="'+encodeURIComponent(u.id)+'"></span></div>'+
           '<div class="between"><div class="eyebrow">Photos</div><span class="num">'+photos.length+' / '+state.config.maxPhotos+'</span></div>'+
           '<div class="thumbs">'+photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
-            (photos.length<state.config.maxPhotos?'<button class="thumb add" data-cap="'+encodeURIComponent(u.id)+'">ï¼‹<span>Capture</span></button>':'')+'</div>'+
+            (photos.length<state.config.maxPhotos?'<button class="thumb add" data-cap="'+encodeURIComponent(u.id)+'">＋<span>Capture</span></button>':'')+'</div>'+
         '</div>';
       }).join(''),
       action:'<button class="btn ghost block" data-go="#/dash">Back to dashboard</button>'
@@ -1400,7 +1400,7 @@ function unitModule(kind){
     });
     $$('[data-del]').forEach(function(el){el.addEventListener('click',async function(){
       var id=decodeURIComponent(el.getAttribute('data-del'));
-      if(!await confirmModal({title:'Remove unit?',body:'The server keeps this equipment record for audit history â€” it is only hidden here on this device.',confirmText:'Remove',danger:true}))return;
+      if(!await confirmModal({title:'Remove unit?',body:'The server keeps this equipment record for audit history — it is only hidden here on this device.',confirmText:'Remove',danger:true}))return;
       var u=arr.find(function(x){return x.id===id;});
       audit('equipment',id,'DELETED',{oldValue:u.number}); inst[cfg.arr]=arr.filter(function(x){return x.id!==id;}); save(); render();
     });});
@@ -1417,7 +1417,7 @@ function unitModule(kind){
       serialTimers[id]=setTimeout(async function(){
         var hintEl=$('[data-dup="'+encodeURIComponent(id)+'"]');
         var d=await dupSerial(u.serial);
-        if(hintEl){ if(d){hintEl.textContent='âš  Duplicate â€” serial already recorded against '+d.centerCode+' ('+d.type+')';hintEl.style.color='var(--bad)';} else {hintEl.textContent='';} }
+        if(hintEl){ if(d){hintEl.textContent='⚠ Duplicate — serial already recorded against '+d.centerCode+' ('+d.type+')';hintEl.style.color='var(--bad)';} else {hintEl.textContent='';} }
       },400);
     });});
     $$('[data-cap]').forEach(function(el){el.addEventListener('click',function(){
@@ -1437,7 +1437,7 @@ VIEWS['internet']={html:function(){
       '<div class="eyebrow">Required</div>'+
       '<div class="between"><div class="eyebrow" style="letter-spacing:.02em;text-transform:none;font-size:13px;color:var(--ink)">Router photograph</div><span class="num">'+photos.length+' / '+state.config.maxPhotos+'</span></div>'+
       '<div class="thumbs">'+photos.map(function(ev){return thumbHTML(inst,ev);}).join('')+
-        (photos.length<state.config.maxPhotos?'<button class="thumb add" id="capRtr">ï¼‹<span>Capture</span></button>':'')+'</div>'+
+        (photos.length<state.config.maxPhotos?'<button class="thumb add" id="capRtr">＋<span>Capture</span></button>':'')+'</div>'+
       '<div class="field"><label>Internet working?</label>'+
         '<div class="seg"><button id="wkYes" aria-pressed="'+(r.working===true)+'">Yes</button><button id="wkNo" aria-pressed="'+(r.working===false)+'">No</button></div></div>'+
       '<div class="banner info">"Router photo captured" and "internet functionality confirmed" are recorded as two separate facts.</div>'+
@@ -1445,7 +1445,7 @@ VIEWS['internet']={html:function(){
     '<div class="card stack">'+
       '<div class="eyebrow">Optional</div>'+
       '<div class="field"><label for="spd">Speed test result</label><input id="spd" value="'+h(r.speedTest||'')+'" placeholder="e.g. 48 Mbps down / 12 up"></div>'+
-      '<div class="field"><label for="rserial">Router serial number</label><input id="rserial" value="'+h(r.serial||'')+'" placeholder="â€”"><span class="hint" id="rdup"></span></div>'+
+      '<div class="field"><label for="rserial">Router serial number</label><input id="rserial" value="'+h(r.serial||'')+'" placeholder="—"><span class="hint" id="rdup"></span></div>'+
     '</div>',
     action:'<button class="btn primary block" data-go="#/dash">Save &amp; back</button>'
   });
@@ -1471,7 +1471,7 @@ VIEWS['internet']={html:function(){
     rserialTimer=setTimeout(async function(){
       var d=await dupSerial(val);
       var el=$('#rdup');
-      if(el){ if(d){el.textContent='âš  Duplicate â€” already recorded against '+d.centerCode+' ('+d.type+')';el.style.color='var(--bad)';}else{el.textContent='';} }
+      if(el){ if(d){el.textContent='⚠ Duplicate — already recorded against '+d.centerCode+' ('+d.type+')';el.style.color='var(--bad)';}else{el.textContent='';} }
     },400);
   });
 }};
@@ -1484,13 +1484,13 @@ VIEWS['issue']={html:function(p){
   var cfg=state.config;
   return shell({title:existing?'Edit issue':'Report issue',sub:cam?cam.number:'center level',back:true,body:
     '<div class="card stack">'+
-      '<div class="eyebrow">'+(cam?'Equipment issue Â· '+h(cam.number):'Center-level issue')+'</div>'+
+      '<div class="eyebrow">'+(cam?'Equipment issue · '+h(cam.number):'Center-level issue')+'</div>'+
       '<div class="field"><label for="isev">Severity</label><select id="isev">'+cfg.issueSeverities.map(function(s){return '<option'+(existing&&existing.severity===s?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
       '<div class="field"><label for="icat">Category / reason</label><select id="icat">'+(cam?cfg.cameraIssueReasons:cfg.issueCategories).map(function(s){return '<option'+(existing&&existing.category===s?' selected':'')+'>'+h(s)+'</option>';}).join('')+'</select></div>'+
       '<div class="field"><label for="idesc">Description</label><textarea id="idesc" placeholder="What is the problem?">'+h(existing?existing.description:'')+'</textarea></div>'+
       '<div class="field"><label>Evidence photo (mandatory)</label>'+
         '<div class="thumbs" id="issThumbs">'+(existing&&existing.photoId&&!isDeleted(inst,existing.photoId)?thumbHTML(inst,existing.photoId):'')+
-        '<button class="thumb add" id="capIssue">ï¼‹<span>Capture</span></button></div></div>'+
+        '<button class="thumb add" id="capIssue">＋<span>Capture</span></button></div></div>'+
     '</div>',
     action:'<button class="btn primary block" id="saveIssue">Save issue</button>'
   });
@@ -1508,7 +1508,7 @@ VIEWS['issue']={html:function(p){
         // find newest issue-type evidence id
         var ids=Object.keys(inst.evidence).filter(function(k){return inst.evidence[k].equipmentType==='Issue'&&!inst.evidence[k].deleted;});
         pendingPhoto=ids.sort(function(a,b){return inst.evidence[b].createdAt-inst.evidence[a].createdAt;})[0];
-        $('#issThumbs').innerHTML=thumbHTML(inst,pendingPhoto)+'<button class="thumb add" id="capIssue2">ï¼‹<span>Retake</span></button>';
+        $('#issThumbs').innerHTML=thumbHTML(inst,pendingPhoto)+'<button class="thumb add" id="capIssue2">＋<span>Retake</span></button>';
         hydrateImages(APP); bindThumbs(APP);
         $('#capIssue2').addEventListener('click',function(){ $('#capIssue').click(); });
       }
@@ -1533,7 +1533,7 @@ VIEWS['issue']={html:function(p){
       inst.issues.push(iss);
       if(cam)cam.issueId=iss.id;
       audit('issue',iss.id,'CREATED',{newValue:iss.severity+' / '+iss.category});
-      tl(inst,(cam?cam.number+' â€” ':'Center â€” ')+iss.category+' ('+iss.severity+')');
+      tl(inst,(cam?cam.number+' — ':'Center — ')+iss.category+' ('+iss.severity+')');
       queueSync('issue',iss.id,inst.id);
     }
     save(); toast('Issue saved'); CPM.back();
@@ -1557,12 +1557,12 @@ VIEWS['review']={html:function(){
       '<div class="ring" style="--v:'+comp.percent+'"><span class="rv">'+comp.percent+'%</span><span class="rl">compliance</span></div>'+
       '<div class="between" style="width:100%">'+statusBadge(inst.status)+gpsBadge(g)+'</div>'+
     '</div>'+
-    sec('Center',kv('code',h(inst.centerCode))+kv('name',h(inst.centerName))+kv('address','<span style="max-width:60%;text-align:right;display:inline-block">'+h(inst.address)+'</span>')+kv('gps',h(g.status)+(g.distance!=null?' Â· '+Math.round(g.distance)+'m':''))) +
-    sec('Technician',kv('identity',h(inst.technicianName)+' Â· '+h(inst.technicianId))+kv('start selfie',inst.startSelfieId?'âœ“ captured':'âœ— missing')+kv('submission selfie',inst.submitSelfieId?'âœ“ captured':'â€” pending')) +
+    sec('Center',kv('code',h(inst.centerCode))+kv('name',h(inst.centerName))+kv('address','<span style="max-width:60%;text-align:right;display:inline-block">'+h(inst.address)+'</span>')+kv('gps',h(g.status)+(g.distance!=null?' · '+Math.round(g.distance)+'m':''))) +
+    sec('Technician',kv('identity',h(inst.technicianName)+' · '+h(inst.technicianId))+kv('start selfie',inst.startSelfieId?'✓ captured':'✗ missing')+kv('submission selfie',inst.submitSelfieId?'✓ captured':'— pending')) +
     sec('CCTV',kv('expected',inst.expectedCctv)+kv('with evidence',cwe)+kv('marked installed',installed)+kv('missing',missing)+kv('additional','+'+additional)) +
     sec('Monitor',kv('units',inst.monitors.length)+kv('evidence',inst.monitors.reduce(function(a,u){return a+livePhotos(inst,u.photoIds).length;},0))) +
     sec('UPS',kv('units',inst.upsUnits.length)+kv('evidence',inst.upsUnits.reduce(function(a,u){return a+livePhotos(inst,u.photoIds).length;},0))) +
-    sec('Internet',kv('router evidence',livePhotos(inst,inst.routers[0].photoIds).length)+kv('working',inst.routers[0].working==null?'not set':(inst.routers[0].working?'yes':'no'))+kv('speed test',h(inst.routers[0].speedTest||'â€”'))) +
+    sec('Internet',kv('router evidence',livePhotos(inst,inst.routers[0].photoIds).length)+kv('working',inst.routers[0].working==null?'not set':(inst.routers[0].working?'yes':'no'))+kv('speed test',h(inst.routers[0].speedTest||'—'))) +
     sec('Issues',kv('critical',sev.Critical)+kv('high',sev.High)+kv('medium',sev.Medium)+kv('low',sev.Low)) +
     '<label style="display:flex;gap:10px;align-items:flex-start;font-size:13px"><input type="checkbox" id="ackbox" style="width:auto;margin-top:3px"> I have reviewed the installation record above and it is accurate.</label>',
     action:'<button class="btn primary block" id="toSubmit" disabled>Proceed to submit</button>'
@@ -1583,7 +1583,7 @@ VIEWS['submit']={html:function(){
       '<h1 class="h-lg">'+h(inst.centerName)+'</h1>'+
       '<div class="readout"><div class="kv"><span>installation id</span><b>'+h(inst.id)+'</b></div>'+
         '<div class="kv"><span>evidence compliance</span><b>'+comp.percent+'%</b></div>'+
-        '<div class="kv"><span>connectivity</span><b>'+(online()?'online â€” will upload now':'offline â€” secure local submission')+'</b></div></div>'+
+        '<div class="kv"><span>connectivity</span><b>'+(online()?'online — will upload now':'offline — secure local submission')+'</b></div></div>'+
     '</div>'+
     '<div class="card stack">'+
       '<div class="eyebrow">Final selfie</div>'+
@@ -1616,13 +1616,13 @@ VIEWS['submit']={html:function(){
     }
     inst.submitted=true; inst.submittedAt=Date.now(); inst.evidenceCompliance=comp.percent;
     tl(inst,'Installation submitted');
-    audit('submission',inst.id,'SUBMITTED',{newValue:inst.status+' Â· '+comp.percent+'%'});
+    audit('submission',inst.id,'SUBMITTED',{newValue:inst.status+' · '+comp.percent+'%'});
     Object.keys(inst.evidence).forEach(function(k){ if(!inst.evidence[k].deleted){ inst.evidence[k].syncStatus=inst.evidence[k].syncStatus==='Synced'?'Synced':'Pending'; queueSync('evidence',k,inst.id); } });
     queueSync('submission',inst.id,inst.id);
     var doneId=inst.id;
     state.activeId=null; save();
-    if(online()){ toast('Submitted â€” uploading evidence','good'); syncTick(); }
-    else { toast('Saved locally â€” will sync automatically when online','good'); }
+    if(online()){ toast('Submitted — uploading evidence','good'); syncTick(); }
+    else { toast('Saved locally — will sync automatically when online','good'); }
     CPM.go('#/sync?i='+doneId);
   });
 }};
@@ -1640,13 +1640,13 @@ VIEWS['sync']={html:function(){
         '<div class="tile"><div class="k num">'+by.Uploading+'</div><div class="l">Uploading</div></div>'+
         '<div class="tile"><div class="k num">'+by.Failed+'</div><div class="l">Failed</div></div>'+
       '</div>'+
-      '<p class="lede">The queue persists across restarts. Failed items retry automatically with backoff. Retrying never creates a duplicate â€” each item carries an idempotency key.</p>'+
+      '<p class="lede">The queue persists across restarts. Failed items retry automatically with backoff. Retrying never creates a duplicate — each item carries an idempotency key.</p>'+
       '<div style="display:flex;gap:10px"><button class="btn ghost block" id="forceOff">'+(state.config.forceOffline?'Go online':'Simulate offline')+'</button>'+
       '<button class="btn primary block" id="syncNow"'+(online()?'':' disabled')+'>Sync now</button></div>'+
     '</div>'+
     (q.length?q.slice().reverse().slice(0,60).map(function(x){
       var stripe=x.status==='Synced'?'good':x.status==='Failed'?'bad':x.status==='Uploading'?'info':'mute';
-      return '<div class="row" style="cursor:default"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(x.type)+' Â· '+h(x.refId.slice(0,14))+'</b><small>attempts '+(x.attempts||0)+(x.status==='Failed'?' Â· retry queued':'')+'</small></div>'+syncPill(x.status)+'</div>';
+      return '<div class="row" style="cursor:default"><span class="stripe '+stripe+'"></span><div class="rmain"><b>'+h(x.type)+' · '+h(x.refId.slice(0,14))+'</b><small>attempts '+(x.attempts||0)+(x.status==='Failed'?' · retry queued':'')+'</small></div>'+syncPill(x.status)+'</div>';
     }).join(''):'<div class="banner info">Nothing queued yet.</div>'),
     action:'<button class="btn primary block" data-go="#/home">Done</button>'
   });
@@ -1665,11 +1665,11 @@ VIEWS['history']={html:function(){
       var q=state.syncQueue.filter(function(x){return x.instId===it.id;});
       var synced=q.length&&q.every(function(x){return x.status==='Synced';});
       return '<button class="row" data-go="#/rec/'+it.id+'"><span class="stripe '+(it.submitted?(synced?'good':'warn'):'info')+'"></span>'+
-        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' Â· '+fmtDate(it.submittedAt||it.createdAt)+'</small>'+
+        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' · '+fmtDate(it.submittedAt||it.createdAt)+'</small>'+
         '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+statusBadge(it.status)+'<span class="badge b-mute"><span class="bd"></span>'+comp+'%</span>'+
         (it.issues.length?'<span class="badge b-warn"><span class="bd"></span>'+it.issues.length+' issue'+(it.issues.length>1?'s':'')+'</span>':'')+
         (it.submitted?(synced?'<span class="badge b-good"><span class="bd"></span>synced</span>':'<span class="badge b-warn"><span class="bd"></span>sync pending</span>'):'<span class="badge b-info"><span class="bd"></span>draft</span>')+
-        '</div></div><span class="chev">â€º</span></button>';
+        '</div></div><span class="chev">›</span></button>';
     }).join(''):'<div class="banner info">No installations yet.</div>'
   });
 },after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
@@ -1687,11 +1687,11 @@ VIEWS['rec']={html:function(p){
       '<div class="readout">'+
         '<div class="kv"><span>project</span><b>'+h(it.projectName)+'</b></div>'+
         '<div class="kv"><span>center</span><b>'+h(it.centerCode)+'</b></div>'+
-        '<div class="kv"><span>technician</span><b>'+h(it.technicianName)+' Â· '+h(it.technicianId)+'</b></div>'+
+        '<div class="kv"><span>technician</span><b>'+h(it.technicianName)+' · '+h(it.technicianId)+'</b></div>'+
         '<div class="kv"><span>started</span><b>'+fmtDT(it.startedAt)+'</b></div>'+
-        '<div class="kv"><span>submitted</span><b>'+(it.submittedAt?fmtDT(it.submittedAt):'â€”')+'</b></div>'+
-        '<div class="kv"><span>gps at start</span><b>'+h(it.gps.status)+(it.gps.distance!=null?' Â· '+Math.round(it.gps.distance)+'m':'')+'</b></div>'+
-        '<div class="kv"><span>server ack</span><b>'+(it.serverAck?'received':it.submitted?'pending':'â€”')+'</b></div>'+
+        '<div class="kv"><span>submitted</span><b>'+(it.submittedAt?fmtDT(it.submittedAt):'—')+'</b></div>'+
+        '<div class="kv"><span>gps at start</span><b>'+h(it.gps.status)+(it.gps.distance!=null?' · '+Math.round(it.gps.distance)+'m':'')+'</b></div>'+
+        '<div class="kv"><span>server ack</span><b>'+(it.serverAck?'received':it.submitted?'pending':'—')+'</b></div>'+
       '</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
         '<button class="btn sm ghost" data-go="#/timeline/'+it.id+'">Timeline</button>'+
@@ -1737,9 +1737,9 @@ VIEWS['audit']={html:function(){
     '<div class="banner info">Append-only. Deletions and replacements keep their history here even after the image is gone.</div>'+
     rows.slice(0,200).map(function(r){
       return '<div class="row" style="cursor:default"><span class="stripe '+(r.action==='DELETED'||r.action==='FAILED'?'bad':r.action==='SYNCED'||r.action==='SUBMITTED'?'good':'mute')+'"></span>'+
-        '<div class="rmain"><b>'+h(r.action)+' Â· '+h(r.entityType)+'</b><small class="mono">'+h(r.entityId.slice(0,20))+' Â· '+fmtDT(r.ts)+'</small>'+
+        '<div class="rmain"><b>'+h(r.action)+' · '+h(r.entityType)+'</b><small class="mono">'+h(r.entityId.slice(0,20))+' · '+fmtDT(r.ts)+'</small>'+
         (r.reason?'<small style="display:block">reason: '+h(r.reason)+'</small>':'')+
-        (r.oldValue||r.newValue?'<small style="display:block">'+h(r.oldValue||'âˆ…')+' â†’ '+h(r.newValue||'âˆ…')+'</small>':'')+
+        (r.oldValue||r.newValue?'<small style="display:block">'+h(r.oldValue||'∅')+' → '+h(r.newValue||'∅')+'</small>':'')+
         '</div></div>';
     }).join('')
   });
@@ -1748,15 +1748,15 @@ VIEWS['audit']={html:function(){
 VIEWS['stakeholder']={html:function(){
   var s=state.session;
   var arr=Object.values(state.installations).filter(function(i){return i.submitted;}).sort(function(a,b){return b.submittedAt-a.submittedAt;});
-  return shell({title:'Stakeholder View',sub:s.role+' Â· read-only',body:
+  return shell({title:'Stakeholder View',sub:s.role+' · read-only',body:
     '<div class="card stack"><div class="eyebrow">'+h(s.role)+' access</div>'+
       '<p class="lede">Submitted installation evidence, as the CPM Portal would consume it. No editing from this role.</p></div>'+
     (arr.length?arr.map(function(it){
       var comp=it.evidenceCompliance!=null?it.evidenceCompliance:compliance(it).percent;
       return '<button class="row" data-go="#/rec/'+it.id+'"><span class="stripe '+(it.serverAck?'good':'warn')+'"></span>'+
-        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' Â· '+h(it.technicianId)+' Â· '+fmtDate(it.submittedAt)+'</small>'+
+        '<div class="rmain"><b>'+h(it.centerName)+'</b><small class="mono">'+h(it.id)+' · '+h(it.technicianId)+' · '+fmtDate(it.submittedAt)+'</small>'+
         '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+statusBadge(it.status)+'<span class="badge b-mute"><span class="bd"></span>'+comp+'%</span>'+
-        '<span class="badge '+(it.gps.status==='Verified'?'b-good':'b-warn')+'"><span class="bd"></span>GPS '+h(it.gps.status)+'</span></div></div><span class="chev">â€º</span></button>';
+        '<span class="badge '+(it.gps.status==='Verified'?'b-good':'b-warn')+'"><span class="bd"></span>GPS '+h(it.gps.status)+'</span></div></div><span class="chev">›</span></button>';
     }).join(''):'<div class="banner info">No submitted installations yet. Sign in as a Technician to create one.</div>')
   });
 },after:function(){ bindChrome(); $$('[data-go]').forEach(function(el){el.addEventListener('click',function(){CPM.go(el.getAttribute('data-go'));});}); }};
@@ -1771,13 +1771,13 @@ VIEWS['settings']={html:function(){
       num('cfAcc','Poor-accuracy threshold (m)',c.gpsPoorAccuracy)+
       num('cfMax','Max photos per equipment',c.maxPhotos)+
       num('cfMin','Min photos for complete CCTV',c.minPhotos)+
-      num('cfQ','JPEG quality (0â€“1)',c.jpegQuality)+
+      num('cfQ','JPEG quality (0–1)',c.jpegQuality)+
       num('cfSide','Max image long-edge (px)',c.maxImageSide)+
       num('cfTo','Session timeout (min)',c.sessionTimeoutMin)+
-      num('cfFail','Simulated sync failure rate (0â€“1)',c.syncFailRate)+
+      num('cfFail','Simulated sync failure rate (0–1)',c.syncFailRate)+
     '</div>'+
     '<div class="card stack"><div class="eyebrow">Testing aids</div>'+
-      tog('cfTest','GPS test mode â€” treat as at center',c.testGpsAtCenter,'Use this to walk the whole flow on a desktop with no GPS.')+
+      tog('cfTest','GPS test mode — treat as at center',c.testGpsAtCenter,'Use this to walk the whole flow on a desktop with no GPS.')+
       tog('cfMock','Simulate mock-location / spoofing',c.simulateMock,'Forces GPS status to "Suspicious".')+
       tog('cfOff','Force offline',c.forceOffline,'Blocks sync so you can see offline-first behaviour.')+
       '<div class="field"><label for="cfTheme">Theme</label><select id="cfTheme"><option value="">System</option><option value="light"'+(state.ui.theme==='light'?' selected':'')+'>Light</option><option value="dark"'+(state.ui.theme==='dark'?' selected':'')+'>Dark</option></select></div>'+
@@ -1822,7 +1822,7 @@ function render(){
   } else {
     if(state.config.sessionTimeoutMin&&Date.now()-state.session.loginAt>state.config.sessionTimeoutMin*60000){
       audit('auth',state.session.userId,'SESSION_TIMEOUT',{}); state.session=null; save();
-      toast('Session expired â€” sign in again','bad'); location.replace('#/login'); return;
+      toast('Session expired — sign in again','bad'); location.replace('#/login'); return;
     }
     if(route===''||route==='login'){ location.replace(state.session.role==='Technician'?'#/home':'#/stakeholder'); return; }
     if(state.session.role!=='Technician'&&TECH_ONLY.indexOf(route)>=0){ location.replace('#/stakeholder'); return; }
@@ -1845,7 +1845,7 @@ function softRefresh(){
   var sc=$('.scroll'); if(sc)sc.scrollTop=y;
 }
 function maybeRefresh(){
-  // only re-render screens that display live sync/queue state â€” never blow away a form in progress
+  // only re-render screens that display live sync/queue state — never blow away a form in progress
   var r=(location.hash||'').replace(/^#\/?/,'').split(/[\/?]/)[0];
   if(['sync','home','dash','history','rec',''].indexOf(r)>=0)softRefresh();
   else updateStrip();
@@ -1890,7 +1890,7 @@ async function checkDevice(){
   try{
     if(navigator.getBattery){
       var b=await navigator.getBattery();
-      if(b.level<0.15&&!b.charging){ toast('Battery critically low â€” active work is saved as you go.','bad'); }
+      if(b.level<0.15&&!b.charging){ toast('Battery critically low — active work is saved as you go.','bad'); }
     }
   }catch(e){}
 }
@@ -1900,7 +1900,7 @@ function syncPump(n){ var i=0; (function step(){ if(i++>=n)return; syncTick().th
 load();
 applyTheme();
 if(state.session&&state.session.role==='Technician'&&state.activeId&&state.installations[state.activeId]&&!state.installations[state.activeId].submitted){
-  // crash recovery â€” keep activeId, land on home which shows the resume card
+  // crash recovery — keep activeId, land on home which shows the resume card
 }
 startGps();
 render();

@@ -9,7 +9,7 @@ param(
 $src = Join-Path $PSScriptRoot "app.html"
 $docsDir = Join-Path $PSScriptRoot "docs"
 New-Item -ItemType Directory -Force -Path $docsDir | Out-Null
-$html = Get-Content $src -Raw
+$html = Get-Content $src -Raw -Encoding UTF8
 $inject = "<script>window.CPM_API_BASE=" + "'" + $ApiBase + "'" + ";</script>`n"
 $html = $html -replace '(<meta charset="utf-8">)', ('$1' + "`n" + $inject)
 Set-Content -Path (Join-Path $docsDir "index.html") -Value $html -Encoding utf8
