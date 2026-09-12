@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     otp_ttl_min: int = 5
     expose_otp: bool = True  # dev convenience: return the OTP in the login response
 
+    # --- email OTP delivery (PRD 8 alt-channel: SMS-to-India needs DLT registration,
+    # so email is the login-by-code path that actually reaches a real, self-added user) ---
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str = "CPM Ground App <no-reply@cpm-ground-app.local>"
+    smtp_use_tls: bool = True
+
     # --- evidence storage (PRD 48, 60, 74) ---
     storage_backend: str = "local"  # "local" | "s3"
     storage_dir: str = (DATA_DIR / "objects").as_posix()

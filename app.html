@@ -1025,7 +1025,7 @@ VIEWS['login']={html:function(){
     '<div class="eyebrow">Sign in</div>'+
     '<h1 class="h-lg">Verify your technician identity</h1>'+
     '<p class="lede">Every installation and every photo is bound to the person who signs in here. Your role and permissions come from the server.</p>'+
-    '<div class="seg" role="tablist"><button id="tabOtp" aria-pressed="true">Mobile + OTP</button><button id="tabVc" aria-pressed="false">Vendor code</button></div>'+
+    '<div class="seg" role="tablist"><button id="tabOtp" aria-pressed="true">Email + OTP</button><button id="tabVc" aria-pressed="false">Vendor code</button></div>'+
     '<div id="loginForm"></div>'+
   '</div>'+
   '</div>';
@@ -1035,17 +1035,17 @@ VIEWS['login']={html:function(){
   function paint(){
     var f=$('#loginForm');
     if(mode==='otp'){
-      f.innerHTML='<div class="field"><label for="mob">Mobile number</label><input id="mob" class="mono" inputmode="numeric" placeholder="9876543210" value="9876543210"></div>'+
+      f.innerHTML='<div class="field"><label for="mob">Email address</label><input id="mob" type="email" placeholder="you@example.com"></div>'+
         '<div id="otpArea"></div>'+
-        '<button class="btn primary block" id="sendOtp">Send OTP</button>';
+        '<button class="btn primary block" id="sendOtp">Send code</button>';
       $('#sendOtp').addEventListener('click',async function(){
         if(busy)return;
-        var mob=$('#mob').value.trim(); if(mob.length<6){toast('Enter a valid mobile number','bad');return;}
+        var mob=$('#mob').value.trim(); if(!mob||mob.indexOf('@')<0){toast('Enter a valid email address','bad');return;}
         setBusy(true);
         try{
-          var resp=await api('POST','/auth/login',{body:{mobile_number:mob}});
+          var resp=await api('POST','/auth/login',{body:{email:mob}});
           challengeId=resp.challenge_id;
-          $('#otpArea').innerHTML=(resp.dev_otp?'<div class="banner info">Dev OTP: <b class="mono">'+h(resp.dev_otp)+'</b> — auto-filled below.</div>':'<div class="banner info">Code sent to '+h(mob)+'.</div>')+
+          $('#otpArea').innerHTML=(resp.dev_otp?'<div class="banner info">Dev code: <b class="mono">'+h(resp.dev_otp)+'</b> — auto-filled below.</div>':'<div class="banner info">Code sent to '+h(mob)+' — check your inbox.</div>')+
             '<div class="field"><label for="otp">Enter OTP</label><input id="otp" class="mono" inputmode="numeric" value="'+h(resp.dev_otp||'')+'"></div>';
           $('#sendOtp').textContent='Verify & sign in';
           $('#sendOtp').onclick=async function(){
@@ -1076,7 +1076,7 @@ VIEWS['login']={html:function(){
   }
   async function finishLogin(t){
     var u=t.user;
-    state.session={userId:u.user_id,name:u.name,mobile:u.mobile_number,vendorCode:u.vendor_code,
+    state.session={userId:u.user_id,name:u.name,mobile:u.mobile_number,email:u.email,vendorCode:u.vendor_code,
       role:u.role,accessToken:t.access_token,refreshToken:t.refresh_token,loginAt:Date.now()};
     audit('auth',u.user_id,'LOGIN',{newValue:u.role}); save();
     toast('Signed in as '+u.name);
@@ -1768,10 +1768,10 @@ VIEWS['users']={html:function(){
   return shell({title:'Manage Users',sub:'Real people, real logins',back:true,body:
     '<div class="card stack">'+
       '<div class="eyebrow">Add a person</div>'+
-      '<p class="lede">Only people added here can sign in — there is no self-signup. Give a technician their own mobile number so OTP login works with their real phone.</p>'+
+      '<p class="lede">Only people added here can sign in — there is no self-signup. Give a technician their own email so the code actually reaches them (real SMS-to-India needs telecom DLT registration, so email is the working OTP channel here).</p>'+
       '<div class="field"><label for="unName">Full name</label><input id="unName" placeholder="e.g. Priya Sharma"></div>'+
       '<div class="field"><label for="unRole">Role</label><select id="unRole">'+roles.map(function(r){return '<option>'+h(r)+'</option>';}).join('')+'</select></div>'+
-      '<div class="seg" role="tablist"><button id="unTabOtp" aria-pressed="true">Mobile + OTP</button><button id="unTabVc" aria-pressed="false">Vendor code</button></div>'+
+      '<div class="seg" role="tablist"><button id="unTabOtp" aria-pressed="true">Email + OTP</button><button id="unTabVc" aria-pressed="false">Vendor code</button></div>'+
       '<div id="unIdentForm"></div>'+
       '<button class="btn primary block" id="unSave">Add person</button>'+
     '</div>'+
@@ -1787,7 +1787,7 @@ VIEWS['users']={html:function(){
   function paintIdent(){
     var f=$('#unIdentForm');
     if(mode==='otp'){
-      f.innerHTML='<div class="field"><label for="unMobile">Mobile number</label><input id="unMobile" class="mono" inputmode="numeric" placeholder="9876543210"></div>';
+      f.innerHTML='<div class="field"><label for="unMobile">Email address</label><input id="unMobile" type="email" placeholder="person@example.com"></div>';
     }else{
       f.innerHTML='<div class="field"><label for="unVc">Vendor code</label><input id="unVc" placeholder="VEND-XXX-00"></div>'+
         '<div class="field"><label for="unPw">Password</label><input id="unPw" type="password"></div>';
@@ -1802,7 +1802,7 @@ VIEWS['users']={html:function(){
       var users=await api('GET','/admin/users');
       $('#unCount').textContent=users.length;
       $('#unList').innerHTML=users.length?users.map(function(u){
-        var ident=u.mobile_number?('mobile '+u.mobile_number):(u.vendor_code?('vendor code '+u.vendor_code):'—');
+        var ident=u.email?('email '+u.email):(u.vendor_code?('vendor code '+u.vendor_code):(u.mobile_number?('mobile '+u.mobile_number):'—'));
         var disabled=u.status&&u.status!=='active';
         return '<div class="row" style="cursor:default"><span class="stripe '+(disabled?'mute':'good')+'"></span>'+
           '<div class="rmain"><b>'+h(u.name)+'</b><small>'+h(u.user_id)+' · '+h(u.role)+' · '+h(ident)+(disabled?' · disabled':'')+'</small></div>'+
@@ -1823,8 +1823,8 @@ VIEWS['users']={html:function(){
     var name=$('#unName').value.trim(); if(!name){toast('Enter a name','bad');return;}
     var body={name:name,role:$('#unRole').value};
     if(mode==='otp'){
-      var mob=$('#unMobile').value.trim(); if(mob.length<6){toast('Enter a valid mobile number','bad');return;}
-      body.mobile_number=mob;
+      var mob=$('#unMobile').value.trim(); if(!mob||mob.indexOf('@')<0){toast('Enter a valid email address','bad');return;}
+      body.email=mob;
     }else{
       var vc=$('#unVc').value.trim(), pw=$('#unPw').value;
       if(!vc||!pw){toast('Enter vendor code and password','bad');return;}

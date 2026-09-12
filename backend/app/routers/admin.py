@@ -20,6 +20,7 @@ class UserCreate(BaseModel):
     name: str
     role: str = "Technician"
     mobile_number: str | None = None
+    email: str | None = None
     vendor_code: str | None = None
     password: str | None = None
     vendor_id: str | None = None
@@ -29,6 +30,7 @@ class UserPatch(BaseModel):
     name: str | None = None
     role: str | None = None
     status: str | None = None
+    email: str | None = None
     password: str | None = None
 
 
@@ -40,7 +42,8 @@ class ConfigPut(BaseModel):
 def list_users(db: Session = Depends(get_db), _: User = Depends(require("*"))):
     return [
         {"user_id": u.user_id, "name": u.name, "role": u.role, "status": u.status,
-         "mobile_number": u.mobile_number, "vendor_code": u.vendor_code, "last_login_at": iso(u.last_login_at)}
+         "mobile_number": u.mobile_number, "email": u.email, "vendor_code": u.vendor_code,
+         "last_login_at": iso(u.last_login_at)}
         for u in db.query(User).order_by(User.created_at).all()
     ]
 
@@ -49,12 +52,12 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require("*"))):
 def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depends(require("*"))):
     if body.role not in ROLE_PERMISSIONS:
         raise ApiError(422, "ROLE_INVALID", f"Role must be one of {sorted(ROLE_PERMISSIONS)}.")
-    if not body.mobile_number and not body.vendor_code:
-        raise ApiError(400, "IDENTIFIER_REQUIRED", "Provide a mobile number or a vendor code.")
+    if not body.mobile_number and not body.email and not body.vendor_code:
+        raise ApiError(400, "IDENTIFIER_REQUIRED", "Provide a mobile number, an email, or a vendor code.")
     uid = token("USR") if body.role != "Technician" else f"TCH-{token('')[-6:]}"
     u = User(
         user_id=uid, name=body.name, role=body.role, mobile_number=body.mobile_number,
-        vendor_code=body.vendor_code, vendor_id=body.vendor_id,
+        email=body.email, vendor_code=body.vendor_code, vendor_id=body.vendor_id,
         password_hash=hash_password(body.password) if body.password else None,
     )
     db.add(u)
@@ -69,7 +72,7 @@ def patch_user(user_id: str, body: UserPatch, db: Session = Depends(get_db), _: 
         raise ApiError(404, "USER_NOT_FOUND", f"No user {user_id}.")
     if body.role and body.role not in ROLE_PERMISSIONS:
         raise ApiError(422, "ROLE_INVALID", "Unknown role.")
-    for f in ("name", "role", "status"):
+    for f in ("name", "role", "status", "email"):
         v = getattr(body, f)
         if v is not None:
             setattr(u, f, v)

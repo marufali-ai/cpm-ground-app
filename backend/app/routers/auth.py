@@ -12,6 +12,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..ids import token
 from ..models import OtpChallenge, RefreshToken, User
+from ..notify import send_otp_email
 from ..schemas import LoginRequest, LoginResponse, RefreshRequest, TokenResponse, VerifyOtpRequest
 from ..security import (
     current_user,
@@ -31,7 +32,7 @@ def _now():
 
 def _user_public(u: User) -> dict:
     return {"user_id": u.user_id, "name": u.name, "role": u.role, "vendor_code": u.vendor_code,
-            "mobile_number": u.mobile_number}
+            "mobile_number": u.mobile_number, "email": u.email}
 
 
 def _issue_tokens(db: Session, user: User, request: Request) -> TokenResponse:
@@ -61,22 +62,32 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
         return LoginResponse(method="password", access_token=t.access_token,
                              refresh_token=t.refresh_token, user=t.user)
 
-    # --- mobile -> OTP ---
-    mobile = body.mobile_number
-    user = db.query(User).filter(User.mobile_number == mobile).first()
+    # --- mobile or email -> OTP ---
+    mobile, email = body.mobile_number, body.email
+    if email:
+        user = db.query(User).filter(User.email == email).first()
+    else:
+        user = db.query(User).filter(User.mobile_number == mobile).first()
     if not user:
-        # do not reveal whether the number exists
-        raise ApiError(404, "USER_NOT_FOUND", "That mobile number is not registered for field work.")
+        # do not reveal whether the identifier exists
+        target = "email" if email else "mobile number"
+        raise ApiError(404, "USER_NOT_FOUND", f"That {target} is not registered for field work.")
     code = f"{random.randint(0, 999999):06d}"
     ch = OtpChallenge(
-        id=token("OTP"), mobile_number=mobile, code_hash=sha256_hex(code.encode()),
+        id=token("OTP"), mobile_number=mobile, email=email, code_hash=sha256_hex(code.encode()),
         expires_at=_now() + timedelta(minutes=settings.otp_ttl_min),
     )
     db.add(ch)
     record(db, entity_type="auth", entity_id=user.user_id, action="OTP_ISSUED", performed_by=user.user_id)
     db.commit()
+    emailed = False
+    if email:
+        try:
+            emailed = send_otp_email(email, code)
+        except Exception:
+            emailed = False  # fall through to the dev banner rather than failing login outright
     return LoginResponse(method="otp", challenge_id=ch.id,
-                         dev_otp=code if settings.expose_otp else None)
+                         dev_otp=None if emailed else (code if settings.expose_otp else None))
 
 
 @router.post("/verify-otp", response_model=TokenResponse)
@@ -89,7 +100,10 @@ def verify_otp(body: VerifyOtpRequest, request: Request, db: Session = Depends(g
     if ch.code_hash != sha256_hex(body.code.strip().encode()):
         raise ApiError(400, "OTP_MISMATCH", "That code does not match. Check and try again.")
     ch.consumed = True
-    user = db.query(User).filter(User.mobile_number == ch.mobile_number).first()
+    if ch.email:
+        user = db.query(User).filter(User.email == ch.email).first()
+    else:
+        user = db.query(User).filter(User.mobile_number == ch.mobile_number).first()
     if not user:
         raise ApiError(404, "USER_NOT_FOUND", "Account not found.")
     return _issue_tokens(db, user, request)

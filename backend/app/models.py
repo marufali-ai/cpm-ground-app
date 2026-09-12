@@ -40,6 +40,7 @@ class User(Base):
     vendor_id = Column(String, nullable=True)
     name = Column(String, nullable=False)
     mobile_number = Column(String, unique=True, nullable=True)
+    email = Column(String, unique=True, nullable=True)
     vendor_code = Column(String, unique=True, nullable=True)
     password_hash = Column(String, nullable=True)  # never plaintext (PRD 66)
     role = Column(String, nullable=False, default="Technician")
@@ -53,7 +54,8 @@ class OtpChallenge(Base):
     __tablename__ = "otp_challenges"
 
     id = Column(String, primary_key=True)
-    mobile_number = Column(String, nullable=False, index=True)
+    mobile_number = Column(String, nullable=True, index=True)
+    email = Column(String, nullable=True, index=True)
     code_hash = Column(String, nullable=False)
     expires_at = _dt(nullable=False)
     consumed = Column(Boolean, default=False)

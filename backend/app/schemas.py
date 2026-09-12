@@ -8,13 +8,14 @@ from pydantic import BaseModel, Field, model_validator
 # --------------------------------------------------------------------------- #
 class LoginRequest(BaseModel):
     mobile_number: str | None = None
+    email: str | None = None
     vendor_code: str | None = None
     password: str | None = None
 
     @model_validator(mode="after")
     def _one_path(self):
-        if not self.mobile_number and not (self.vendor_code and self.password):
-            raise ValueError("Provide a mobile number, or a vendor code with password.")
+        if not self.mobile_number and not self.email and not (self.vendor_code and self.password):
+            raise ValueError("Provide a mobile number, an email, or a vendor code with password.")
         return self
 
 
