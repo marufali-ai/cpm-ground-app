@@ -3,7 +3,6 @@
   "appName": "CPM Ground Evidence",
   "webDir": "www",
   "server": {
-    "androidScheme": "http",
-    "cleartext": true
+    "androidScheme": "https"
   }
 }

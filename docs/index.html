@@ -602,8 +602,31 @@ function confirmModal(o){
 }
 
 /* ============================== camera + watermark ============================== */
+async function dataUrlToBlob(dataUrl){
+  var res=await fetch(dataUrl); return await res.blob();
+}
 function openCamera(opts){
   // opts: {facing, guide, gpsText, title, onCapture(blob)}
+  // Inside the native app shell, use Android's real camera app via Capacitor's Camera
+  // plugin — a WebView video-preview UI (the branch below) looks and behaves like a
+  // webpage because it is one; the native camera intent is what actually feels and
+  // performs like a normal phone camera.
+  var NativeCamera=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Camera;
+  if(NativeCamera){
+    NativeCamera.getPhoto({
+      quality:90, allowEditing:false, resultType:'dataUrl', source:'CAMERA',
+      direction:(opts.facing==='user'?'FRONT':'REAR'), saveToGallery:false, correctOrientation:true
+    }).then(function(photo){
+      return dataUrlToBlob(photo.dataUrl);
+    }).then(function(blob){
+      opts.onCapture(blob);
+    }).catch(function(err){
+      // user cancelled, or permission denied — either way, no capture; don't toast on plain cancel
+      var msg=(err&&err.message)||'';
+      if(msg&&!/cancel/i.test(msg))toast('Camera error: '+msg,'bad');
+    });
+    return;
+  }
   var stream=null, wrap=document.createElement('div'); wrap.className='cam';
   var facing=opts.facing||'environment';
   wrap.innerHTML=

@@ -5,7 +5,7 @@
   picks up both the latest app.html AND the current backend URL.
 #>
 param(
-  [string]$ApiBase = "http://13.207.131.147/api/v1"
+  [string]$ApiBase = "https://cpm-ground-app.onrender.com/api/v1"
 )
 $src = Join-Path $PSScriptRoot "..\app.html"
 $wwwDir = Join-Path $PSScriptRoot "www"
