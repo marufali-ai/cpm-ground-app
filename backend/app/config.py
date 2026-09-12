@@ -31,11 +31,15 @@ class Settings(BaseSettings):
 
     # --- email OTP delivery (PRD 8 alt-channel: SMS-to-India needs DLT registration,
     # so email is the login-by-code path that actually reaches a real, self-added user) ---
+    # Preferred: Resend's HTTPS API (works even where a host blocks outbound SMTP
+    # ports, which many PaaS free tiers do to prevent spam abuse).
+    resend_api_key: str | None = None
+    email_from: str = "CPM Ground App <onboarding@resend.dev>"
+    # Fallback: plain SMTP, for providers/hosts where that's not an issue.
     smtp_host: str | None = None
     smtp_port: int = 587
     smtp_user: str | None = None
     smtp_password: str | None = None
-    smtp_from: str = "CPM Ground App <no-reply@cpm-ground-app.local>"
     smtp_use_tls: bool = True
 
     # --- evidence storage (PRD 48, 60, 74) ---

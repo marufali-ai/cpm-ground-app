@@ -1,4 +1,5 @@
 """Authentication (PRD 8, 63, 101). OTP-preferred, vendor-code + password fallback."""
+import logging
 import random
 from datetime import datetime, timedelta, timezone
 
@@ -24,6 +25,7 @@ from ..security import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+log = logging.getLogger("cpm.auth")
 
 
 def _now():
@@ -86,6 +88,7 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
             emailed = send_otp_email(email, code)
         except Exception:
             emailed = False  # fall through to the dev banner rather than failing login outright
+            log.exception("Failed to send OTP email to %s", email)
     return LoginResponse(method="otp", challenge_id=ch.id,
                          dev_otp=None if emailed else (code if settings.expose_otp else None))
 
